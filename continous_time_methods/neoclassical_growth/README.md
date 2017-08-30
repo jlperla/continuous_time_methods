@@ -1,0 +1,1 @@
+# Variations on solution to the neoclassical growth model in continuous time
