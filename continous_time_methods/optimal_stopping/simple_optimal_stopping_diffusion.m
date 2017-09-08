@@ -35,7 +35,7 @@ error_tolerance = 10^(-6);
 
 %Create uniform grid and determine step sizes.
 x = linspace(x_min, x_max, N_x)';
-dx = x(2)-x(1);  Would want to use a vector in a non-uniformly spaced grid.
+dx = x(2)-x(1); % Would want to use a vector in a non-uniformly spaced grid.
 dx_2 = dx^2; %Just squaring the dx for the second order terms in the finite differences.
 
 %% Construct sparse A matrix
@@ -43,15 +43,15 @@ dx_2 = dx^2; %Just squaring the dx for the second order terms in the finite diff
 mu = mu_x(x); %vector of constant drifts 
 sigma_2 = sigma_x(x).^2; %
 
-%TODO: Explain the upwinding setup with these X, Y, Z terms.  Given matrices names to make them more clear.
+%TODO: Explain the upwinding setup with these X, Y, Z terms.  Given matrices names to make them more clear and map to the code.
 X = - min(mu,0)/dx + sigma_2/(2*dx_2);
-Y = - max(mu,0)/dx + min(mu,0)/dx - sigma_2/dx_2; %TODO: Why doesn't Y have a /2 in it?
+Y = - max(mu,0)/dx + min(mu,0)/dx - sigma_2/dx_2;
 Z =  max(mu,0)/dx + sigma_2/(2*dx_2);
 
 %Creates the core finite difference scheme for the given mu and sigma_2 vectors.
 A = spdiags(Y, 0, N_x, N_x) + spdiags(X(2:N_x),-1, N_x, N_x) + spdiags([0;Z(1:N_x-1)], 1, N_x, N_x); %TODO: Better explain the finite difference scheme here with the upwind
 A(N_x,N_x)= Y(N_x) + sigma_2(N_x)/(2*dx_2); A(N_x,N_x-1) = X(N_x); %TODO: Better explain how this implments the right hand boundary
-%TODO: Explain the left hand boundary value here?  Should we be making sure that v(x_min) <= S, for example...
+%TODO: Explain the left hand boundary value here?  Should we be making sure that v(x_min) <= S, for example... Verifying that S(x_min) > 0, for example would be enough?
 
 
 %TODO: Constructing variations on the creation of A for exposition:
