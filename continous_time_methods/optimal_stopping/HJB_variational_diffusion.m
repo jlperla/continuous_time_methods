@@ -56,7 +56,7 @@ A(N_x,N_x)= Y(N_x) + sigma_2(N_x)/(2*dx_2); A(N_x,N_x-1) = X(N_x); %TODO: Better
 
 %TODO: Constructing variations on the creation of A for exposition:
   % Variation 1: construct the A assuming that mu < 0 (i.e., the direction of the finite differences is known a-priori)
-  % Variation 2: construct the A with a for loop, essentially adding in each row as an equation.
+  % Variation 2: construct the A with a for loop, essentially adding in each row as an equation.  Map to exact formulas in a latex document.
 
 
 %% Setup and solve the problem as a linear-complementarity problem (LCP)
@@ -103,3 +103,6 @@ p2=plot(x,v,x,S,'--','LineWidth',2);
 set(gca,'FontSize',16);
 legend('v(x)','S(x)','Location','NorthWest');
 xlabel('x');
+
+%% TODO: Compare the v output to a baseline stored by the HACT output.
+% Compare size of maximum difference in output.
