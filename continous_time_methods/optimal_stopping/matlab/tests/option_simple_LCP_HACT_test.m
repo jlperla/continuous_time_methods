@@ -1,8 +1,17 @@
-% Modification of Ben Moll's: http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m
-close all; clc;
-%% Example 1 with the LCP based method. 
-%Parameters
-tic;
+% Generates the output data
+% call original code
+option_simple_LCP();
+
+% Define an absolute tolerance
+test_tol = 1e-10;
+
+%% Test 1: baseline HACT comparison
+%load results from the baseline setup.
+addpath('../');
+load output_option_simple_LCP_HACT_raw.mat 
+test_output_simple_HACT = test_output;  
+
+%Run the new code.
 mu_bar = -0.01; %Drift.  Sign changes the upwind direction.
 sigma_bar = 0.01; %Variance
 S_bar = 10.0; %the value of stopping
@@ -29,9 +38,9 @@ settings.error_tolerance = 10^(-6);
 
 %Create uniform grid and determine step sizes.
 results = simple_optimal_stopping_diffusion(p, settings);
-toc;
-p2=plot(results.x,results.v,results.x,results.S,'--','LineWidth',2);
-set(gca,'FontSize',16);
-legend('v(x)','S(x)','Location','NorthWest');
-xlabel('x');
+
+%Check all values
+assert(max(abs(results.x - test_output_simple_HACT.x)) < test_tol, 'grid different');
+assert(max(abs(results.v - test_output_simple_HACT.v)) < test_tol, 'value solution different');
+assert(max(abs(results.S - test_output_simple_HACT.S)) < test_tol, 'S solution different');
 

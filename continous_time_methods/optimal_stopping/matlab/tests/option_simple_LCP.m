@@ -1,4 +1,6 @@
-clear all; clc; close all;
+%Minor modifications to http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m
+%clearvars -except  MADMaxDenseN MADMaxSparseFracForFull MADMinSparseN;
+format compact;clc; close all;
 
 rho = 0.05;
 
@@ -34,11 +36,11 @@ q = -u + B*S;
 
 %TRY DIFFERENT ALGORITHMS FOR SOLVING LCP
 tic
-disp('Solving LCP')
+%disp('Solving LCP')
 
 %Test 1: Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
 z0 = zeros(I,1); l = zeros(I,1); u = Inf*ones(I,1);
-z = LCP(B,q,l,u,z0,1);
+z = LCP(B,q,l,u,z0,false);
 
 %Test 2: Andreas Almqvist pivoting (Lemke) LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/41485
 %[w,z,retcode] = LCPSolve(B,q);
@@ -46,17 +48,26 @@ z = LCP(B,q,l,u,z0,1);
 LCP_error = max(abs(z.*(B*z + q)));
 if LCP_error > 10^(-6)
     disp('LCP not solved')
-    break
+    exit;
 end
     
 V_LCP = z+S; %calculate value function
-toc
+toc;
 
-error = z.*(B*z + q);
-plot(x,error)
+% toc
+% 
+% error = z.*(B*z + q);
+% plot(x,error)
 
-plot(x,V_LCP,x,S,'--','LineWidth',2)
-set(gca,'FontSize',16)
-legend('v(x)','S(x)','Location','NorthWest')
-xlabel('x')
-%print -depsc option_simple.eps
+v = V_LCP;
+test_output.x = x;
+test_output.v = v;
+test_output.S = S;
+test_output.error = LCP_error;
+save('output_option_simple_LCP_HACT_raw.mat', 'test_output');
+
+% plot(x,V_LCP,x,S,'--','LineWidth',2)
+% set(gca,'FontSize',16)
+% legend('v(x)','S(x)','Location','NorthWest')
+% xlabel('x')
+% %print -depsc option_simple.eps

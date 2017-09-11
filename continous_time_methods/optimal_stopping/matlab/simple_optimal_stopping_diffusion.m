@@ -92,6 +92,6 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     results.S = S;
 	results.z = z;
 	results.success = true;
-	results.LCP_error = LCP_error
+	results.LCP_error = LCP_error;
 
 end	
