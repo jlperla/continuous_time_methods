@@ -47,15 +47,16 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	%The first row of matrix A implements v(x_min-epsilon)=x_min.
 
 
-	%TODO: Constructing variations on the creation of A for exposition:
-	  % Variation 1: construct the A assuming that mu < 0 (i.e., the direction of the finite differences is known a-priori)
+	
+	% Variation 1: construct the A assuming that mu < 0 (i.e., the direction of the finite differences is known a-priori)
 	X_var1 = - mu/dx + sigma_2/(2*dx_2);
 	Y_var1 = mu/dx - sigma_2/dx_2;
 	Z_var1 = sigma_2/(2*dx_2);
 	A_var1 = spdiags(Y_var1, 0, N_x, N_x) + spdiags(X(2:N_x), -1, N_x, N_x) + spdiags([0;Z(1:N_x-1))], 1, N_x, N_x);
-	  % Variation 2: construct the A with a for loop, essentially adding in each row as an equation.  Map to exact formulas in a latex document.
-	S = zeros(N_x+1, N_x+1);
-	for i = 1: N_x+1
+	A_var1(N_x,N_x)= Y(N_x) + sigma_2(N_x)/(2*dx_2);
+	% Variation 2: construct the A with a for loop, essentially adding in each row as an equation.  Map to exact formulas in a latex document.
+	S = zeros(N_x+2, N_x+2);
+	for i = 1: N_x
 	  x_i = -mu(i)/dx + sigma_2(i)/(2*dx_2);
 	  y_i = mu(i)/dx - sigma_2(i)/dx_2;
 	  z_i = sigma_2(i)/(2*dx_2);
@@ -63,7 +64,8 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	  A_var2(i+1, i+1) = y_i;
 	  A_var2(i+1, i+2) = z_i;
 	end
-	A_var2 = sparse(S);
+	A_var2(N_x+1, N_x+1) = mu(N_x)/dx - sigma_2(N_x)/(2*dx_2);
+	A_var2 = sparse(S(2: N_x+1, 2: N_x+1));
 	
 
 	%% Setup and solve the problem as a linear-complementarity problem (LCP)
