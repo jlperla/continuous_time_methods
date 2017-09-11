@@ -60,11 +60,11 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	  x_i = -mu(i)/dx + sigma_2(i)/(2*dx_2);
 	  y_i = mu(i)/dx - sigma_2(i)/dx_2;
 	  z_i = sigma_2(i)/(2*dx_2);
-	  A_var2(i+1, i) = x_i;
-	  A_var2(i+1, i+1) = y_i;
-	  A_var2(i+1, i+2) = z_i;
+	  S(i+1, i) = x_i;
+	  S(i+1, i+1) = y_i;
+	  S(i+1, i+2) = z_i;
 	end
-	A_var2(N_x+1, N_x+1) = mu(N_x)/dx - sigma_2(N_x)/(2*dx_2);
+	S(N_x+1, N_x+1) = mu(N_x)/dx - sigma_2(N_x)/(2*dx_2);
 	A_var2 = sparse(S(2: N_x+1, 2: N_x+1));
 	
 
