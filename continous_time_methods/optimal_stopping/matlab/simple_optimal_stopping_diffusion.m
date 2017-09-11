@@ -38,15 +38,33 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	Z =  max(mu,0)/dx + sigma_2/(2*dx_2);
 
 	%Creates the core finite difference scheme for the given mu and sigma_2 vectors.
-	A = spdiags(Y, 0, N_x, N_x) + spdiags(X(2:N_x),-1, N_x, N_x) + spdiags([0;Z(1:N_x-1)], 1, N_x, N_x); %TODO: Better explain the finite difference scheme here with the upwind
-	A(N_x,N_x)= Y(N_x) + sigma_2(N_x)/(2*dx_2); A(N_x,N_x-1) = X(N_x); %TODO: Better explain how this implments the right hand boundary
+	A = spdiags(Y, 0, N_x, N_x) + spdiags(X(2:N_x),-1, N_x, N_x) + spdiags([0;Z(1:N_x-1)], 1, N_x, N_x);  
+	%Term Y is on the diagonal except the last row. Every element below the diagonal is constructed by term X, and ones above the diagonal are contructed by term Z.
+	
+	A(N_x,N_x)= Y(N_x) + sigma_2(N_x)/(2*dx_2); A(N_x,N_x-1) = X(N_x); 
+	%The last term on the diagonal becomes "- max(mu,0)/dx + min(mu,0)/dx - sigma_2/2*dx_2", which implements that v(x_max+epsilon)=x_max.
 	%TODO: Explain the left hand boundary value here?  Should we be making sure that v(x_min) <= S, for example... Verifying that S(x_min) > 0, for example would be enough?
+	%The first row of matrix A implements v(x_min-epsilon)=x_min.
 
 
 	%TODO: Constructing variations on the creation of A for exposition:
 	  % Variation 1: construct the A assuming that mu < 0 (i.e., the direction of the finite differences is known a-priori)
+	X_var1 = - mu/dx + sigma_2/(2*dx_2);
+	Y_var1 = mu/dx - sigma_2/dx_2;
+	Z_var1 = sigma_2/(2*dx_2);
+	A_var1 = spdiags(Y_var1, 0, N_x, N_x) + spdiags(X(2:N_x), -1, N_x, N_x) + spdiags([0;Z(1:N_x-1))], 1, N_x, N_x);
 	  % Variation 2: construct the A with a for loop, essentially adding in each row as an equation.  Map to exact formulas in a latex document.
-
+	S = zeros(N_x+1, N_x+1);
+	for i = 1: N_x+1
+	  x_i = -mu(i)/dx + sigma_2(i)/(2*dx_2);
+	  y_i = mu(i)/dx - sigma_2(i)/dx_2;
+	  z_i = sigma_2(i)/(2*dx_2);
+	  A_var2(i+1, i) = x_i;
+	  A_var2(i+1, i+1) = y_i;
+	  A_var2(i+1, i+2) = z_i;
+	end
+	A_var2 = sparse(S);
+	
 
 	%% Setup and solve the problem as a linear-complementarity problem (LCP)
 	%Given the above construction for u, A, and S, we now have the discretized version
