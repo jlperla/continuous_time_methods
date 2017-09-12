@@ -79,7 +79,7 @@ X_2 & Y_2 & Z_2 & \ddots & & & \vdots \\
 \end{bmatrix}\in\R^{I\times I}\label{eq:A}
 \end{equation}
 
-Note that the special cases for the $1$st and $I$th row correspond to the boundary values \cref{eq:HJB-variational-simple-bv1,eq:HJB-variational-simple-bv2} and are adjusted by the $BV_1,BV_2$ terms. To better understand this construction, look at individual rows of $A$ with the ODE.
+Note that the special cases for the $1$st and $I$th row correspond to the boundary values \cref{eq:HJB-variational-simple-bv1,eq:HJB-variational-simple-bv2} and are adjusted by the $BV_1,BV_2$ terms. To better understand this construction, look at individual rows of $A$ with the ODE.\footnote{Note that here we defined the boundary conditions in terms of the value of points $v_0$ and $v_{I+1}$. These points are sometimes called ``ghost nodes''.}
 
 \paragraph{Interior of $A$:}
 
@@ -105,11 +105,13 @@ As $i =1$, the discretized operator from \cref{eq:A-collected-interior} is
 \end{align}
 
 \paragraph{Boundary Value at $\bar{x}$:}
-As $i=I$, the equation becomes
-\begin{equation}
-\rho v_I = u_I + \dfrac{v_I-v_{I-1}}{\Delta}\mu_I^{-}  + \dfrac{\sigma_I^2}{2} \dfrac{ v_{I-1}-v_I}{\Delta^2}
-\end{equation}
-where we have used the boundary value $v'(\bar{x}) \approx \dfrac{v_{I+1}-v_I}{\Delta} = 0, \implies v_{I+1} = v_I$.\footnote{Note that here we defined the boundary conditions in terms of the value of points $v_0$ and $v_{I+1}$. These points are sometimes called "ghost nodes".}
+As $i=I$, from \cref{eq:A-collected-interior}
+\begin{align}
+&= \left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)v_{I-1} + \left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}\\
+\intertext{From the boundary value $v'(\bar{x}) \approx \dfrac{v_{I+1}-v_I}{\Delta} = 0, \implies v_{I+1} = v_I$,}
+&= \underbrace{\left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)}_{\equiv X_I}v_{I-1} + \underbrace{\left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)}_{\underbrace{Y_I + BV_I}}v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}
+\end{align}
+\textbf{TODO: FINISH}
 In the special case of $\mu(\bar{x}) < 0$,
 \begin{equation}
 \rho v_I = u_I + \dfrac{v_I-v_{I-1}}{\Delta} \mu_I + \dfrac{\sigma_I^2}{2} \dfrac{ v_{I-1}-v_I}{\Delta^2}
