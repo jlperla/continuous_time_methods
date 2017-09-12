@@ -1,6 +1,6 @@
 %Minor modifications to http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m
 %clearvars -except  MADMaxDenseN MADMaxSparseFracForFull MADMinSparseN;
-format compact;clc; close all;
+%format compact;clc; close all;
 addpath('../');
 rho = 0.05;
 

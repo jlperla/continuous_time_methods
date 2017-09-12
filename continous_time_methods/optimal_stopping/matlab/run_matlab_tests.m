@@ -1,4 +1,5 @@
 % Running tests and performance tests.
+clc;
 test_results = runtests('tests','IncludeSubfolders',true);
 perf_results = runperf('tests','IncludeSubfolders',true);
 

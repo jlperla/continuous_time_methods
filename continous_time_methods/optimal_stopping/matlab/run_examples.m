@@ -23,7 +23,7 @@ p.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = sigma_bar x
 %TODO: In the old version, why does the sigma_bar multiple the grid x, but not the drift?  Is this a mistake in missing out the drift of the brownian motion term?
 
 %Settings for the solution method
-settings.N_x = 1000; %number of grid variables for x
+settings.I = 1000; %number of grid variables for x
 settings.display = false;
 settings.error_tolerance = 10^(-6);
 
