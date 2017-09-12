@@ -28,7 +28,7 @@ The "upwind scheme" is constructed by using $X_i$ $Y_i$ and $Z_i$ , where $i = 1
 By using $X_i$ $Y_i$ and $Z_i$, the matrix $A$ is contructed as 
 
 \begin{equation}
-\begin{bmatrix}
+A = \begin{bmatrix}
 Y_1 & Z_1 & 0 & \cdots & \cdots & \cdots & 0 \\
 X_2 & Y_2 & Z_2 & \ddots & & & \vdots \\
 \vdots & \ddots & \ddots & \ddots & \ddots &  & \vdots \\
@@ -61,7 +61,7 @@ Y_i &= \dfrac{\mu_i}{\Delta} - \dfrac{\sigma_i^2}{\Delta^2} \qquad \qquad   i = 
 Z_i &= \dfrac{\sigma_i^2}{2\Delta^2} \qquad  \qquad \qquad i = 1, 2, ..., N_X-1\\
 Y_{N_X} & = \dfrac{\mu_{N_X}}{\Delta} - \dfrac{\sigma_{N_X}^2}{2\Delta^2}
 \end{align}
-
+The format of this varified matrix is the same as matrix $A$.
 
 
 
