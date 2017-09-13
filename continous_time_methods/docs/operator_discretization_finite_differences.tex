@@ -1,0 +1,129 @@
+\documentclass[11pt]{etk-article}
+\usepackage{pstool} 
+\usepackage{etk-bib}
+\usepackage{amsmath}
+\pdfmetadata{}{}{}{}
+
+\begin{document}
+\title{Discretizing Continuous-Time Operators with Finite Differences\\
+	Time-Homogenous and Stationary Examples}
+\date{\today}
+\maketitle
+These notes expand on Ben Moll's superb notes in \url{http://www.princeton.edu/~moll/HACTproject/}.  This set of notes gives examples on how to discretize linear and nonlinear operators.  The discretized operators are used for various methods.  The time-homogeneity maintained throughout.
+\paragraph{Notation}
+To set some general notation, given an operator (or infinitesimal generator) associated with a particular stochastic process, $\mathcal{A}$.  The purpose of these notes is to discretize $\mathcal{A}$ on this grid using using finite differences.  Crucially, it is necessary to put boundary-values into the discretized operator as well.
+
+In the univariate case, $\set{x_i}_{i=1}^I$ with $x_1 = \underline{x}$ and $x_I = \bar{x}$ when $x \in [\underline{x}, \bar{x}]$.    In the case of a linear $\mathcal{A}$, the resulting discretized operator is a matrix $A \in \R^{I \times I}$, but otherwise may be a nonlinear function.
+
+For a given variable $q$, define the notation $\mu^{-} \equiv \min\set{q,0}$ and $q^{+} \equiv \max\set{q,0}$, which will be useful for defining finite-differences with an upwind scheme.\footnote{For more details on the notation and the upwind scheme, see \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf}.}   This can apply to vectors as well. For example, $q_i^{-} = q_i$ if $q_i < 0$ and $0$ if $q_i > 0$, and $q_i^{-} \equiv \set{q^{-}_i}_{i=1}^{I}$
+
+Finally,  derivatives are denoted by the operator $\D$ and univariate derivatives such as $\D[x]v(x) \equiv v'(x)$.
+
+\section{Univariate Diffusions}
+\subsection{Stochastic Process and Boundary Values}
+Take a diffusion process for $x_t$ according to the following stochastic difference equation,
+\begin{align}
+\diff x_t = \mu(x_t)\diff t + \sigma(x_t)\diff\mathbb{W}_t\label{eq:x-SDE}
+\end{align}
+where $\mathbb{W}_t$ is Brownian motion and $x \in (\underline{x}, \bar{x})$ where $-\infinity \leq \underline{x} < \bar{x} \leq \infinity$.\footnote{We are being a little sloppy with $x_t$ being exactly at the bounds, because it is a measure $0$ event with a diffusion.}  The functions $\mu(\cdot)$ and $\sigma(\cdot)$ are left general, but it is essential that they are time-homogeneous.
+
+We will consider several types of boundary values for an operator on a generic function $v(x)$.  Because the process is univariate, we require boundary conditions at both sides of $x$, and assume that the boundary and $\mu(\cdot), \sigma(x)^2$ are independent of time.
+\begin{itemize}
+	\item \textbf{Absorbing Barrier:}   $v(\underline{x}) = \underline{v}$ and/or $v(\bar{x}) = \bar{v}$ for constants $\underline{v}$ and/or $\bar{v}$.  This is called a ``Dirichlet'' boundary condition in PDEs. 
+	\item \textbf{Reflecting Barrier:} $\D[x]v(\underline{x}) = v'(\underline{x})=0$ and/or $v'(\bar{x}) = 0$.  This is called a ``Neumann'' boundary condition in PDEs. 
+	\item \textbf{Transversality:} Problem specific?  But the hope is that we can use a reflecting barrier in many cases without effecting most of the results.
+\end{itemize}
+
+The infinitesimal generator associated with this stochastic process is
+\begin{align}
+	\mathcal{A} &\equiv \mu(x)\D[x] + \frac{\sigma(x)^2}{2}\D[xx]\label{eq:A-generator-univariate-diffusion}
+\end{align}
+
+\subsection{Finite Difference Discretization for $A$ with a Uniform Grid}
+For a uniform grid, define $\Delta \equiv x_{i+1} - x_i$, which is identical for all $i$.  Define the vectors, $X,Y,Z \in \R^I$ such that,
+\begin{align}
+	X &= - \dfrac{\mu^{-}}{\Delta} + \dfrac{\sigma^{2}}{2\times \Delta^{2}}\label{eq:X} \\
+	Y &= - \dfrac{\mu^{+}}{\Delta} + \dfrac{\mu^{-}}{\Delta} - \dfrac{\sigma^{2}}{\Delta^{2}}\label{eq:Y} \\
+	Z &= \dfrac{\mu^{+}}{\Delta} + \dfrac{\sigma^{2}}{2\times \Delta^{2}}\label{eq:Z}\\
+	BV_1 &= \begin{cases} 0, & \text{ for absorbing barrier $v(\underline{x}) = \underline{v}$}\\
+	X_1,& \text{ for reflecting barrier $v'(\underline{x}) = 0$}\end{cases}\\		
+	BV_I &= \begin{cases}0 , & \text{ for absorbing barrier $v(\bar{x}) = \bar{v}$}\\
+	Z_I,& \text{ for reflecting barrier $v'(\bar{x}) = 0$}\end{cases}				
+\end{align}
+
+
+With these, the matrix $A$ is constructed as.
+\begin{align}
+A &\equiv \begin{bmatrix}
+Y_1 + BV_1 & Z_1 & 0 & \cdots & \cdots & \cdots & 0 \\
+X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
+0 & \ddots & \ddots & \ddots & \ddots &  & \vdots \\
+\vdots & &\ddots & \ddots & \ddots & \ddots  & \vdots \\
+\vdots & & & \ddots & X_{I-1} & Y_{I-1}  & Z_{I-1} \\
+0 & \cdots & \cdots & \cdots & 0 & X_I & Y_I+BV_I\\
+\end{bmatrix}\in\R^{I\times I}\label{eq:A}\\
+b &\equiv \begin{bmatrix}X_1\underline{v} & 0 & \cdots & 0 &  Z_I\bar{v}\end{bmatrix}^T\in\R^I \label{eq:b}
+\intertext{where,}
+\mathcal{A}v(\set{x_i}) &\approx A v + b
+\end{align}
+
+Note that the special cases for the $1$st and $I$th row correspond to the boundary values and are adjusted by the $BV_1,BV_2$ terms. Also, note that the $b$ vector is all zeros if the boundary values are reflective, or the boundary value at the minimum is $0$.  To better understand this construction, look at individual rows of $A$ with the ODE.\footnote{Note that here we defined the boundary conditions in terms of the value of points $v_0$ and $v_{I+1}$. These points are sometimes called ``ghost nodes''.}
+
+\paragraph{Interior of $A$:}
+
+In the interior ($1 < i < I$), the discretization of \cref{eq:A-generator-univariate-diffusion}
+\begin{align}
+\mathcal{A} v(x_i) &\approx \underbrace{\dfrac{v_i-v_{i-1}}{\Delta}\mu_i^{-}+ \dfrac{v_{i+1}-v_i}{\Delta}\mu_i^{+}}_{\text{Upwind Scheme}}  + \dfrac{\sigma_i^2}{2} \dfrac{v_{i+1} - 2 v_i + v_{i-1}}{\Delta^2}\label{eq:A-generator-univariate-diffusion-interior}\\
+\intertext{The upwind scheme chooses either forward or backward differences, depending on the sign of the drift.  Collecting terms, we see the derivation for the definitions in \cref{eq:X,eq:Y,eq:Z}}
+&= \underbrace{\left(-\frac{\mu_i^{-}}{\Delta} +\frac{\sigma_i^2}{2\Delta^2}\right)}_{\equiv X_i}v_{i-1} + \underbrace{\left(\frac{\mu_i^{-}}{\Delta} - \frac{\mu_i^{+}}{\Delta}-\frac{\sigma_i^2}{\Delta^2}\right)}_{\equiv Y_i}v_i + \underbrace{\left(\frac{\mu_i^{+}}{\Delta} + \frac{\sigma_i^2}{2\Delta^2}\right)}_{\equiv Z_i}v_{i+1}\label{eq:A-collected-interior}
+\end{align}
+
+
+\paragraph{Boundary Value at $\underline{x}$:}
+As $i =1$, the discretized operator from \cref{eq:A-collected-interior} is
+\begin{align}
+\mathcal{A} v(x_1) &\approx \left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)v_0 + \left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)v_1 + \left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)v_2\label{eq:A-collected-left}\\
+\intertext{In the case of the boundary value $v(\underline{x}) = \underline{v}$, subsitute for $v_0 =  \underline{v}$ to find,}
+&\approx \underbrace{\left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)\underline{v}}_{\equiv b_1} +  \underbrace{\left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)}_{\equiv Y_1}v_1 + \underbrace{\left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv Z_1}v_2\\
+\intertext{Alternatively, if the boundary value is $v'(\underline{x}) = 0$, take \cref{eq:A-collected-left} and use $v'(\underline{x}) \approx \dfrac{v_1-v_0}{\Delta} = 0, \implies v_1 = v_0$, so}
+\mathcal{A} v(x_1) &\approx \left(\underbrace{\left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv BV_1 = X_1} + \underbrace{\left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)}_{\equiv Y_1}\right)v_1 + \underbrace{\left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv Z_1}v_2\\
+\end{align}
+
+\paragraph{Boundary Value at $\bar{x}$:}
+As $i=I$, from \cref{eq:A-collected-interior}
+\begin{align}
+\mathcal{A} v(x_I)&\approx \left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)v_{I-1} + \left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}\\
+\intertext{For the absorbing barrier, substitute for $v(x_{I+1}) = \bar{v}$,}
+\approx \left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)v_{I-1} + \left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}
+\intertext{For a reflecting barrier, the boundary value $v'(\bar{x}) \approx \dfrac{v_{I+1}-v_I}{\Delta} = 0, \implies v_{I+1} = v_I$,}
+&= \underbrace{\left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)}_{\equiv X_I}v_{I-1} + \underbrace{\left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)}_{\underbrace{Y_I + BV_I}}v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}
+\end{align}
+\textbf{TODO: FINISH}
+In the special case of $\mu(\bar{x}) < 0$,
+\begin{equation}
+\rho v_I = u_I + \dfrac{v_I-v_{I-1}}{\Delta} \mu_I + \dfrac{\sigma_I^2}{2} \dfrac{ v_{I-1}-v_I}{\Delta^2}
+\end{equation}
+Also note that for $\mu > 0$, the upwind drift term drops out entirely.
+
+
+\paragraph{Simplifications with $\mu < 0$:}
+\noindent In the simple case where $\mu(x) < 0$ for all $x$, this simplifies to using backward differences,
+\begin{align}
+	\mathcal{A} v(x_i)  &= \dfrac{v_i-v_{i-1}}{\Delta}\mu_i + \dfrac{\sigma_i^2}{2} \dfrac{v_{i+1} - 2 v_i + v_{i-1}}{\Delta^2}
+\end{align}
+
+Here, we make some variations to the simple option problem. When $\mu < 0$ is known, non-zero entries in the "upwind scheme" matrix become
+\begin{align}
+X_i &= -\dfrac{\mu_i}{\Delta} + \dfrac{\sigma_i^2}{2\Delta^2} \qquad \quad  i = 2, 3, ..., I \\
+Y_i &= \dfrac{\mu_i}{\Delta} - \dfrac{\sigma_i^2}{\Delta^2} \qquad \qquad   i = 1, 2, ..., I-1 \\
+Z_i &= \dfrac{\sigma_i^2}{2\Delta^2} \qquad  \qquad \qquad i = 1, 2, ..., I-1\\
+Y_I & = \dfrac{\mu_I}{\Delta} - \dfrac{\sigma_I^2}{2\Delta^2}
+\end{align}
+The format of this verified matrix is the same as matrix $A$.
+
+
+
+
+\bibliography{etk-references}
+
+\end{document}
