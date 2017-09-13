@@ -15,7 +15,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	mu_x = p.mu_x; %Drift function
 	sigma_2_x = p.sigma_2_x; %diffusion term sigma(x)^2
 	S_x = p.S_x; %payoff function on exit.
-	x_min = p.x_min; %Not just a setting as a boundar value occurs here
+	x_min = p.x_min; %Not just a setting as a boundary value occurs here
 	x_max = p.x_max; %Not just a setting as a boundary value occurs here.
 	
 	%Settings for the solution method
@@ -23,50 +23,35 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
 	%Create uniform grid and determine step sizes.
 	x = linspace(x_min, x_max, I)';
-	Delta = x(2)-x(1); % Would want to use a vector in a non-uniformly spaced grid.
+	Delta = x(2)-x(1); % (1) Would want to use a vector in a non-uniformly spaced grid.
 	Delta_2 = Delta^2; %Just squaring the Delta for the second order terms in the finite differences.
 
-	%% Construct sparse A matrix
+	%% Construct sparse A matrix.  TODO: move to a separate file, since general issue.
 	%This is for generic diffusion functions with mu_x = mu(x) and sigma_x = sigma(x)
 	mu = mu_x(x); %vector of constant drifts 
 	sigma_2 = sigma_2_x(x); %
 
-	%TODO: Explain the upwinding setup with these X, Y, Z terms.  Given matrices names to make them more clear and map to the code.
-	X = - min(mu,0)/Delta + sigma_2/(2*Delta_2);               % equation (1)
-	Y = - max(mu,0)/Delta + min(mu,0)/Delta - sigma_2/Delta_2;    % equation (2)
-	Z =  max(mu,0)/Delta + sigma_2/(2*Delta_2);                % equation (3)
+	%Explain the upwinding setup with these X, Y, Z terms.  Given matrices names to make them more clear and map to the code.
+    mu_minus = min(mu,0); %General notation of plus/minus.
+    mu_plus = max(mu,0); 
+    
+	X = - mu_minus/Delta + sigma_2/(2*Delta_2);               % (7)
+	Y = - mu_plus/Delta + mu_minus/Delta - sigma_2/Delta_2;    % (8)
+	Z =  mu_plus/Delta + sigma_2/(2*Delta_2);                % (9)
 
-	%Creates the core finite difference scheme for the given mu and sigma_2 vectors.
-	A = spdiags(Y, 0, I, I) + spdiags(X(2:I),-1, I, I) + spdiags([0;Z(1:I-1)], 1, I, I);    % equation (4)
-	%Term Y is on the diagonal except the last row. Every element below the diagonal is constructed by term X, and ones above the diagonal are contructed by term Z.
+    %Sparse matrix trick: spdiags takes a vector and an offset.  It returns the vector as sparse a diagonal matrix where the diagonal is offset by the other argument.
+    %For example:
+    % norm(spdiags([1;2;3], 0, 3, 3)- diag([1 2 3]), Inf) % on the true diagonal, offset 0.  Check that
+    % norm(spdiags([2;3;9999], -1, 3, 3)- [0 0 0; 2 0 0; 0 3 0], Inf) %on the diagonal below.  Note that the last element is skipped since only 2 points on off diagonal.
+    % norm(spdiags([9999;2;3], 1, 3, 3)- [0 2 0; 0 0 3; 0 0 0], Inf) %on the diagonal above.  Note that the first element is skipped since only 2 points on off diagonal.
+    
+    %Alternatively this can be done in a single operation to form a tridiagonal matrix by stacking up the arrays, where the 2nd argument is a list of the offsets to apply the columns to)
+    %This is equivalent to %A = spdiags(Y, 0, I, I) + spdiags(X(2:I),-1, I, I) + spdiags([0;Z(1:I-1)], 1, I, I);
+    A = spdiags([[X(2:I); 0] Y [0; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is correct.  Corners will require adjustment    
 	
-	A(I,I)= Y(I) + sigma_2(I)/(2*Delta_2); A(I,I-1) = X(I); 
-    %The middle rows are represented as equation (5). In particular, the first row is written as equation (6) and the last row is equation (7).
-	%The last term on the diagonal becomes "- max(mu,0)/Delta + min(mu,0)/Delta - sigma_2/2*Delta_2", which implements that v(x_max+epsilon)=x_max.
-	%TODO: Explain the left hand boundary value here?  Should we be making sure that v(x_min) <= S, for example... Verifying that S(x_min) > 0, for example would be enough?
-	%The first row of matrix A implements v(x_min-epsilon)=x_min.
-
-
-	
-	% Variation 1: construct the A assuming that mu < 0 (i.e., the direction of the finite differences is known a-priori)
-	X_var1 = - mu/Delta + sigma_2/(2*Delta_2);
-	Y_var1 = mu/Delta - sigma_2/Delta_2;
-	Z_var1 = sigma_2/(2*Delta_2);
-	A_var1 = spdiags(Y_var1, 0, I, I) + spdiags(X(2:I), -1, I, I) + spdiags([0;Z(1:I-1)], 1, I, I);
-	A_var1(I,I)= Y(I) + sigma_2(I)/(2*Delta_2);
-	% Variation 2: construct the A with a for loop, essentially adding in each row as an equation.  Map to exact formulas in a latex document.
-	S = zeros(I+2, I+2);
-	for i = 1: I
-	  x_i = -mu(i)/Delta + sigma_2(i)/(2*Delta_2);  % equation (8)
-	  y_i = mu(i)/Delta - sigma_2(i)/Delta_2;       % equation (9)
-	  z_i = sigma_2(i)/(2*Delta_2);              % equation (10)
-	  S(i+1, i) = x_i;
-	  S(i+1, i+1) = y_i;
-	  S(i+1, i+2) = z_i;
-	end
-	S(I+1, I+1) = mu(I)/Delta - sigma_2(I)/(2*Delta_2);  %% equation (11)
-	A_var2 = sparse(S(2: I+1, 2: I+1));
-	
+    %Manually adjust the boundary values at the corners.
+	A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)
+	A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
 
 	%% Setup and solve the problem as a linear-complementarity problem (LCP)
 	%Given the above construction for u, A, and S, we now have the discretized version

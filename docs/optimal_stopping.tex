@@ -4,131 +4,73 @@
 \pdfmetadata{}{}{}{}
 
 \begin{document}
-\title{Notes on Numerical Solutions for Optimal Stopping Problems}
+\title{Optimal Stopping Problems}
 \date{\today}
 \maketitle
 These notes expand on Ben Moll's superb notes in \url{http://www.princeton.edu/~moll/HACTproject/} on solving option value problems as HJB Variational Inequalities, as discussed \cite{HuangPang1998}.
-%
-%\textbf{TODO:}
-%\begin{itemize}
-%	\item We probably want to put most of the \url{http://www.princeton.edu/~moll/HACTproject/option_simple.pdf} notes in there, but adding in the details on the discretization, boundary values, upwind finite differences, etc. that come from \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf} and \url{http://www.princeton.edu/~moll/HACTproject/HACT_Additional_Codes.pdf} as required.
-%	\item Want to have every formula used in the matlab code explicitly listed, with special care on the boundary values/etc.
-%\end{itemize}
-\section{General Optimal Stopping of a Univariate Diffusion}
-This section provides details on a general case of a uncontrolled univariate diffusion process with an optimal stopping choice.\footnote{See \url{http://www.princeton.edu/~moll/HACTproject/option_simple.pdf} for the simplest case.  The algebra expands on \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf} and \url{http://www.princeton.edu/~moll/HACTproject/HACT_Additional_Codes.pdf}.}
 
-\subsection{General Problem}
-Take a diffusion process for $x_t$ according to the following stochastic difference equation,
-\begin{align}
-\diff x_t = \mu(x_t)\diff t + \sigma(x_t)\diff\mathbb{W}_t\label{eq:x-SDE}
-\end{align}
-where $\mathbb{W}_t$ is Brownian motion and $x \in [\underline{x}, \bar{x})$ where $\bar{x} \leq \infinity$.  The functions $\mu(\cdot)$ and $\sigma(\cdot)$ are left general.  Furthermore assume that,
+\section{Optimal Stopping of a Univariate, Time-Homogenous Process}
+This section outlines the general approach to the problems.\footnote{See \url{http://www.princeton.edu/~moll/HACTproject/option_simple.pdf} for the simplest case.  The algebra expands on \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf} and \url{http://www.princeton.edu/~moll/HACTproject/HACT_Additional_Codes.pdf}.}
+\subsection{Variational Inequality Formulation}
+To set notation:
 \begin{itemize}
+	\item $x$ is a stochastic process, with infinitesimal generator $\mathcal{A}$.\footnote{For example, the infinitesimal generator of the SDE $\diff x_t = \mu(x_t)\diff t + \sigma(x_t)\diff\mathbb{W}_t$ is  $\mathcal{A} \equiv \mu(x)\D[x] + \frac{\sigma(x)^2}{2}\D[xx]$}
 	\item An agent with state $x$ can optimally stop with value $S(x)$ at any time.
-	\item There is a reflecting barrier for a finite $\bar{x}$.  Without a reflecting barrier, some sort of alternative boundary value would be required in order to discretize the problem.
-	\item Also assume that there is an absorbing barrier at $\underline{x}$ with value $\underline{v} = v(\underline{x}) < S(\underline{x}) $.  This serves as a boundary value for the discretization, but never bind in practice.\footnote{Alternatively, a reflecting barrier at $\underline{x}$ should work in many examples, though the condition is harder to check.}
 	\item The agent gains utility flow $u(x)$ and discounts the future at rate $\rho > 0$.
 \end{itemize}
 
-Given these, the value and choice functions for the agent can be setup as a HJB variational inequality with a few boundary values:
-\begin{align}
-	0 &= \min\set{\rho v(x) - u(x) - \mu(x)v'(x) - \frac{\sigma(x)^2}{2}v''(x),\, v(x) - S(x) }\label{eq:HJB-variational-simple}\\
-	v'(\bar{x}) &= 0\label{eq:HJB-variational-simple-bv1}\\
-	v(\underline{x}) &= \underline{v}, \text{ or } v'(\underline{x}) = 0\label{eq:HJB-variational-simple-bv2}
-\end{align}
-where $v(x)$ is the value in the continuation region, \cref{eq:HJB-variational-simple-bv1} is the boundary value associated with the reflecting barrier at $\bar{x}$, and \cref{eq:HJB-variational-simple-bv2} is the boundary value associated with the (hopefully nonbinding) absorbing or reflecting barrier at $\underline{x}$.\footnote{Crucially, for large $\bar{x}$, the solution should not be sensitive to the location of the reflecting barrier (except locally to $\bar{x}$) and the $v(\underline{x})$ absorbing barrier is only for fully discretizing the operator and is never relevant given that $\underline{v} < S(\underline{x})$.}  The lack of a smooth-pasting condition in the system above is that a solution to \cref{eq:HJB-variational-simple} can be shown to imply smooth-pasting.
 
-\subsection{Discretized Problem}
-Note that \cref{eq:HJB-variational-simple} can be written as,
+\paragraph{Classical Formulation}
+The typical formulation of this is as a free-boundary value problem.  Assume that the agent chooses an optimal $\hat{x}$ stopping rule, then it will solve the ODE in the continuation region along with value matching and optimal stopping.  That is, find a $v(x)$ continuation value and stopping point $\hat{x}$ that fulfills,\footnote{Note that if anything was a function of time, this would no longer be time-invariant.  For example, if $S(t,x)$, then $\mathcal{A}$ would have a $\D[t]$ term as well, and $\hat{x}(t)$ is the stopping rule at any time}
+\begin{align}
+	\rho v(x) &= u(x) + \mathcal{A} v(x)\\
+	v(\hat{x}) &= S(\hat{x})\\
+	v'(\hat{x}) &= 0
+\end{align}	
+Additionally another boundary value would be required for either a large $\bar{x}$ or a transversality condition.  This formulation requires that there is only a single stopping point.
+
+\paragraph{HJB Variational Inequality Formulation}
+Another formulation is to find a $v(x)$ such that the following holds,
 \begin{align}
 	0 &= \min\set{\rho v(x) - u(x) - \mathcal{A} v(x),\, v(x) - S(x) }\label{eq:HJB-variational-simple-operator}
 \end{align}	
-with the operator $\mathcal{A} \equiv \mu(x)\D[x] + \frac{\sigma(x)^2}{2}\D[xx]$.  The solution to this problem will discretize $\mathcal{A}$ operator on a grid $\set{x_i}_{i=1}^I$ with $x_1 = \underline{x}$ and $x_I = \bar{x}$ subject to the boundary values in \cref{eq:HJB-variational-simple-bv1,eq:HJB-variational-simple-bv2}.  As the operator $\mathcal{A}$ is linear, the resulting discretized finite-difference operator is a matrix $A$.  Denote $v \equiv \set{v(x_i)}_{i=1}^I, u \equiv \set{u(x_i)}_{i=1}^I$, and $S \equiv \set{s(x_i)}_{i=1}^I$, then \cref{eq:HJB-variational-simple-operator} becomes
+for all $x$ (adding an appropriate boundary conditions $x$).  This is a variational inequality since $\mathcal{A}$ is a differential operator.  While the value matching condition is clear here, it can be shown that this implies the smooth pasting condition.
+
+
+\subsection{Discretized Problem}
+For an arbitrary operator $\mathcal{A}$ with associated boundary values, we will find a solution to \cref{eq:HJB-variational-simple-operator} by discretizing the $\mathcal{A}$ operator on a grid $\set{x_i}_{i=1}^I$ with $x_1 = \underline{x}$ and $x_I = \bar{x}$ subject to appropriate boundary values on $\underline{x}$ and $\bar{x}$.  See \url{operator_discretization_finite_differences.pdf} notes for details on the discretization of operators.
+\paragraph{Linear Operator}
+In the the case of a linear operator $\mathcal{A}$, the resulting discretized finite-difference operator is a matrix $A$.  Denote $v \equiv \set{v(x_i)}_{i=1}^I, u \equiv \set{u(x_i)}_{i=1}^I$, and $S \equiv \set{s(x_i)}_{i=1}^I$, then \cref{eq:HJB-variational-simple-operator} becomes
 \begin{align}
 	0 &= \min\set{\rho v - u - A v,\, v - S }\label{eq:HJB-variational-simple-discrete}
 \end{align}
-where $A\in\R^{I\times I}$.  A solution to this problem is a $v$ fulfilling \cref{eq:HJB-variational-simple-discrete}.  Note that the boundary values are already in the $A$ operator and do not need to be discussed separately.  Also calculate the vectors $\mu \equiv \set{\mu(x_i)}_{i=1}^I$ and $\sigma^2 \equiv \set{\sigma(x_i)^2}_{i=1}^I$.  
+where $A\in\R^{I\times I}$.  A solution to this problem is a $v$ fulfilling \cref{eq:HJB-variational-simple-discrete}.  Note that the boundary values are already in the $A$ operator and do not need to be discussed separately.
 
-In order to help ensure that the solution to $v$ in \cref{eq:HJB-variational-simple-discrete} converges to that of of $v$ in \cref{eq:HJB-variational-simple}, we will use an upwind'' finite difference scheme.  Here the idea is to use forward difference approximation whenever the drift of the state variable is positive and the backward difference approximation whenever it is negative.\footnote{Using an upwind scheme is sufficient but not necessary when $\sigma > 0$.  Nevertheless, it is generally a good idea.}  For the 2nd derivative, we will use central-differences.
-
-
-\subsection{Finite Difference Discretization for $A$ with a Uniform Grid}
-Define the notation $q^{-} \equiv \min\set{q,0}$ and $q^{+} \equiv \max\set{q,0}$.\footnote{For more details on the notation and the upwind scheme, see \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf}.}  For example, $\mu_i^{-} = \mu_i$ if $\mu_i < 0$ and $0$ if $\mu_i > 0$, and $\mu^{-} \equiv \set{\mu^{-}_i}_{i=1}^{I}$
-
-For a uniform grid, define $\Delta \equiv x_{i+1} - x_i$, which is identical for all $i$.  Define the vectors, $X,Y,Z \in \R^I$ such that,
+\subsection{LCP Formulation}
+Following \url{http://www.princeton.edu/~moll/HACTproject/option_simple.pdf} with only minor variations, we note that \cref{eq:HJB-variational-simple-operator} is a linear-complementarity problem. 
+Define the following (given the identity matrix $\mathbf{I}\in\R^{I\times I}$),
 \begin{align}
-	X &= - \dfrac{\mu^{-}}{\Delta} + \dfrac{\sigma^{2}}{2\times \Delta^{2}} \\
-	Y &= - \dfrac{\mu^{+}}{\Delta} + \dfrac{\mu^{-}}{\Delta} - \dfrac{\sigma^{2}}{\Delta^{2}} \\
-	Z &= \dfrac{\mu^{+}}{\Delta} + \dfrac{\sigma^{2}}{2\times \Delta^{2}}\\
-	BV_1 &= \begin{cases} X_1 \underline{v} & \text{ ,for absorbing barrier $v(\underline{x}) = \underline{v}$}\\
-	X_1& \text{ ,for reflecting barrier $v'(\underline{x}) = 0$}\end{cases}\\
-	BV_I &= \dfrac{\sigma_I^2}{2\times\Delta^2}, \quad \text{ for a reflecting barrier $v'(\bar{x}) = 0$}
+	B &\equiv \rho \mathbf{I} - A\label{eq:B}\\
+	z &\equiv v - S\label{eq:z}\\
+	q &\equiv - u + B S\label{eq:q}\\
+		w &\equiv B z + q\label{eq:w}\\
+	\intertext{Substitute \cref{eq:B,eq:z,eq:q} into \cref{eq:HJB-variational-simple-discrete}}
+	0 &= \min\set{B z + q,\, z }
+	\intertext{Which could be written as complementarity slackness conditions,}
+	z^T(B z + q) &= 0 \\
+	z &\geq 0\\
+	B z + q &\geq 0	\\
+	\intertext{Which can be written succinctly with complementarity constraints as,}
+	0 &\leq (B z + q) \perp z \geq 0
 \end{align}
-
-
-With these, the matrix $A$ is constructed as.
-\begin{equation}
-A \equiv \begin{bmatrix}
-Y_1 + BV_1 & Z_1 & 0 & \cdots & \cdots & \cdots & 0 \\
-X_2 & Y_2 & Z_2 & \ddots & & & \vdots \\
-\vdots & \ddots & \ddots & \ddots & \ddots &  & \vdots \\
-\vdots & &\ddots & \ddots & \ddots & \ddots  & \vdots \\
-\vdots & & & \ddots & X_{I-1} & Y_{I-1}  & Z_{I-1} \\
-\vdots & \cdots & \cdots & \cdots & \cdots & X_I & Y_I+BV_I\\
-\end{bmatrix}\in\R^{I\times I}\label{eq:A}
-\end{equation}
-
-Note that the special cases for the $1$st and $I$th row correspond to the boundary values \cref{eq:HJB-variational-simple-bv1,eq:HJB-variational-simple-bv2} and are adjusted by the $BV_1,BV_2$ terms. To better understand this construction, look at individual rows of $A$ with the ODE.\footnote{Note that here we defined the boundary conditions in terms of the value of points $v_0$ and $v_{I+1}$. These points are sometimes called ``ghost nodes''.}
-
-\paragraph{Interior of $A$:}
-
-In the interior of the matrix ($1 < i < I$), the equation for the ODE in \cref{eq:HJB-variational-simple-discrete} becomes
+Alternatively, some LCP and MCP solvers prefer to have a slack variable introduced.  Use \cref{eq:w} to find the LCP problem as finding $w,z\in\R^I$ such that,
 \begin{align}
-\mathcal{A} v(x_i) &\approx \dfrac{v_i-v_{i-1}}{\Delta}\mu_i^{-}+ \dfrac{v_{i+1}-v_i}{\Delta}\mu_i^{+}  + \dfrac{\sigma_i^2}{2} \dfrac{v_{i+1} - 2 v_i + v_{i-1}}{\Delta^2}\\
-\intertext{Collecting terms,}
-&= \underbrace{\left(-\frac{\mu_i^{-}}{\Delta} +\frac{\sigma_i^2}{2\Delta^2}\right)}_{\equiv X_i}v_{i-1} + \underbrace{\left(\frac{\mu_i^{-}}{\Delta} - \frac{\mu_i^{+}}{\Delta}-\frac{\sigma_i^2}{\Delta^2}\right)}_{\equiv Y_i}v_i + \underbrace{\left(\frac{\mu_i^{+}}{\Delta} + \frac{\sigma_i^2}{2\Delta^2}\right)}_{\equiv Z_i}v_{i+1}\label{eq:A-collected-interior}
+		w &\equiv B z + q\label{eq:w-equality-constraint}\\
+		0 \leq w &\perp z \geq 0
 \end{align}
+where \cref{eq:w-equality-constraint} is added to the solver with a linear equality constraint.
 
-\noindent In the simple case where $\mu(x) < 0$ for all $x$, this simplifies to,
-\begin{equation}
-\rho v_i = u_i +  \dfrac{v_i-v_{i-1}}{\Delta}\mu_i + \dfrac{\sigma_i^2}{2} \dfrac{v_{i+1} - 2v_i + v_{i-1}}{\Delta^2}
-\end{equation}
-\paragraph{Boundary Value at $\underline{x}$:}
-As $i =1$, the discretized operator from \cref{eq:A-collected-interior} is
-\begin{align}
-\mathcal{A} v(x_1) &\approx \left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)v_0 + \left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)v_1 + \left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)v_2\label{eq:A-collected-left}\\
-\intertext{In the case of the boundary value $v(\underline{x}) = \underline{v}$, subsitute for $v_0 =  \underline{v}$ to find,}
-&\approx \left(\underbrace{\overbrace{\left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)}^{\equiv X_1}\underline{v}}_{\equiv BV_1} + \underbrace{\left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)}_{\equiv Y_1}\right)v_1 + \underbrace{\left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv Z_1}v_2\\
-\intertext{Alternatively, if the boundary value is $v'(\underline{x}) = 0$, take \cref{eq:A-collected-left} and use $v'(\underline{x}) \approx \dfrac{v_1-v_0}{\Delta} = 0, \implies v_1 = v_0$, so}
-\mathcal{A} v(x_1) &\approx \left(\underbrace{\left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv BV_1 = X_1} + \underbrace{\left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)}_{\equiv Y_1}\right)v_1 + \underbrace{\left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv Z_1}v_2\\
-\end{align}
-
-\paragraph{Boundary Value at $\bar{x}$:}
-As $i=I$, from \cref{eq:A-collected-interior}
-\begin{align}
-&= \left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)v_{I-1} + \left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}\\
-\intertext{From the boundary value $v'(\bar{x}) \approx \dfrac{v_{I+1}-v_I}{\Delta} = 0, \implies v_{I+1} = v_I$,}
-&= \underbrace{\left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)}_{\equiv X_I}v_{I-1} + \underbrace{\left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)}_{\underbrace{Y_I + BV_I}}v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}
-\end{align}
-\textbf{TODO: FINISH}
-In the special case of $\mu(\bar{x}) < 0$,
-\begin{equation}
-\rho v_I = u_I + \dfrac{v_I-v_{I-1}}{\Delta} \mu_I + \dfrac{\sigma_I^2}{2} \dfrac{ v_{I-1}-v_I}{\Delta^2}
-\end{equation}
-Also note that for $\mu > 0$, the upwind drift term drops out entirely.
-
-
-\paragraph{Simplifications with $\mu < 0$:}
-Here, we make some variations to the simple option problem. When $\mu < 0$ is known, non-zero entries in the "upwind scheme" matrix become
-\begin{align}
-X_i &= -\dfrac{\mu_i}{\Delta} + \dfrac{\sigma_i^2}{2\Delta^2} \qquad \quad  i = 2, 3, ..., I \\
-Y_i &= \dfrac{\mu_i}{\Delta} - \dfrac{\sigma_i^2}{\Delta^2} \qquad \qquad   i = 1, 2, ..., I-1 \\
-Z_i &= \dfrac{\sigma_i^2}{2\Delta^2} \qquad  \qquad \qquad i = 1, 2, ..., I-1\\
-Y_I & = \dfrac{\mu_I}{\Delta} - \dfrac{\sigma_I^2}{2\Delta^2}
-\end{align}
-The format of this verified matrix is the same as matrix $A$.
-
-
+In either case, to unpack the results, drop any slack variables to get the $z$ vector, and undo the transformation in \cref{eq:z}.
 
 
 \bibliography{etk-references}
