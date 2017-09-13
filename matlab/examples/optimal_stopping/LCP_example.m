@@ -1,4 +1,6 @@
 % Modification of Ben Moll's: http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m
+addpath('../../lib/'); %Adds library files used by the method.
+
 close all; clc;
 %% Example 1 with the LCP based method. 
 %Parameters

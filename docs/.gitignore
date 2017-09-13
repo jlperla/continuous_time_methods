@@ -1,7 +1,7 @@
 
 *.asv
 *.gz
+*.pdf
 .DS_Store
 *.aux
 *.log
-*.synctex(busy)

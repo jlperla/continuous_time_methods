@@ -1,6 +1,8 @@
 % Generates the output data
 % call original code
-option_simple_LCP();
+addpath('../lib/');
+
+option_simple_LCP(); %A minimally modified version of the HACT code for comparison
 
 % Define an absolute tolerance
 test_tol = 1e-10;
