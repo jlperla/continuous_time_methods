@@ -1,6 +1,6 @@
-# Examples with etk and other libraries
-* Install https://github.com/orsharir/github-mathjax to get math displaying correctly in the Issues and the markdown.
+#Examples of Methods for Continuous Time Problems
 
-## Continuous Time Methods
-* See  [Optimal Stopping Problems](/continous_time_methods/optimal_stopping): Solves as Variational HJBE Inequalities
-* See  [Neoclassical Growth](/continous_time_methods/neoclassical_growth): Solves using upwind finite differences
+## Variations on Solutions to Optimal Stopping Problems
+See Ben Moll's [Heterogeneous Agent Models in Continuous Time](http://www.princeton.edu/~moll/HACTproject.htm) project.  In particular
+* [Stopping Time Problem I: Exercising an Option:](http://www.princeton.edu/~moll/HACTproject/option_simple.pdf): with http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m
+* [Stopping Time Problem II: Liquid and Illiquid Assets and Fixed Adjustment Costs:](http://www.princeton.edu/~moll/HACTproject/liquid_illiquid_numerical.pdf): with http://www.princeton.edu/~moll/HACTproject/liquid_illiquid_LCP.m
