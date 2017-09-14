@@ -30,7 +30,7 @@ In the simple case of a uniform grid, $\Delta \equiv \Delta_{i,+} = \Delta_{i,-}
 \end{itemize}
 
 \section{Time-Independent Univariate Diffusions}\label{sec:time-independent-univariate-diffusion}
-Assume that the time variable does not directly enter into anything important in the problem (e.g. drifts, payoffs, stopping values, boundary values, or discount rates).  This is also assuming that the drift, variance, and boundary values are not a (direct) function of any $v_i$.\footnote{However, in the case of controlled-diffusions a numerical method is to use the last iterations $v^{n-1}_i$ as part of the $\mu^n_i$ definition for the equations in $v^n_i$.  This process has a linear $\mathcal{A}$ at any given iteration.}  Otherwise, the operator would be nonlinear.  In the case of a linear $\mathcal{A}$, the resulting discretized operator may be a (heavily sparse) matrix $A \in \R^{I \times I}$, which is especially convenient to solve.
+Assume that the time variable does not directly enter into anything important in the problem (e.g. drifts, payoffs, stopping values, boundary values, or discount rates).  This is also assuming that the drift, variance, and boundary values are not a (direct) function of any $v_i$.\footnote{However, in the case of controlled-diffusions a numerical method is to use the last iterations $v^{n-1}_i$ as part of the $\mu^n_i$ definition for the equations in $v^n_i$.  This process has a linear $\mathcal{A}$ at any given iteration.}  Otherwise, the operator would be nonlinear.  In the case of a linear $\mathcal{A}$, the resulting discretized operator will be a (heavily sparse) matrix $A \in \R^{I \times I}$, which is especially convenient to solve.
 
 \subsection{Stochastic Process and Boundary Values}
 Take a diffusion process for $x_t$ according to the following stochastic difference equation,
@@ -44,7 +44,7 @@ The partial differential operator (infinitesimal generator) associated with the 
 	\mathcal{A} &\equiv \mu(x)\D[x] + \frac{\sigma(x)^2}{2}\D[xx]\label{eq:A-generator-univariate-diffusion}
 \end{align}
 
-We will consider several types of boundary values for an operator on a generic function $v(x)$.  Because the process is univariate, we require boundary conditions at both sides of $x$, and assume that the boundary and $\mu(\cdot), \sigma(x)^2$ are independent of time.
+We will consider several types of boundary values for an operator on a generic function $v(x)$.  Because the process is univariate, we require boundary conditions at both sides of $x$, and assume that the boundary and $\mu(\cdot), \sigma(x)^2$ are independent of time.  Given that the operator is on a function $v(x)$, consider:
 \begin{itemize}
 	\item \textbf{Absorbing Barrier:}   $v(\underline{x}) = \underline{v}$ and/or $v(\bar{x}) = \bar{v}$ for constants $\underline{v}$ and/or $\bar{v}$.  This is called a ``Dirichlet'' boundary condition in PDEs. 
 	\item \textbf{Reflecting Barrier:} $\D[x]v(\underline{x}) = v'(\underline{x})=0$ and/or $v'(\bar{x}) = 0$.  This is called a ``Neumann'' boundary condition in PDEs. 
@@ -54,20 +54,20 @@ We will consider several types of boundary values for an operator on a generic f
 
 To distinguish between the boundary values we will consider, define
 \begin{align}
-	R_{\underline{x}} &= \begin{cases}
+	R_{\underline{x}} &\equiv \begin{cases}
 		1 & \text{ if $x$ is reflected at $\underline{x}$}\\
 		0 & \text{ if there is a absorbing barrier with value $\underline{v}$}
 	\end{cases}\label{eq:R-x-min}\\
-	R_{\bar{x}} &= \begin{cases}
+	R_{\bar{x}} &\equiv \begin{cases}
 	1 & \text{ if $x$ is reflected at $\bar{x}$}\\
 	0 & \text{ if there is a absorbing barrier with value $\bar{v}$}
 \end{cases}\label{eq:R-x-max}
 \end{align}	
-
-As before, denote the vector of drifts and variances as $\mu \equiv \set{\mu(x_i)}_{i=1}^I$ and $\sigma^2 \equiv \set{\sigma(x_i)^2}_{i=1}^I$.
+\paragraph{What Boundary Value to Assume?}
+In general, a reflection for a large $\bar{x}$ and small $\underline{x}$ is the most appropriate.  The exceptions would tend to have direct economics associated with a death or uncontrolled stopping.\footnote{For example, even if you have firms optimally exiting, you could use a small reflection at $\bar{x}$ for the variational methods in \url{optimal_stopping.pdf} as long as $\bar{x}$ is below any binding level.}
 
 \subsection{Upwind Finite Difference Discretization for $A$ with a Uniform Grid}
-For a uniform grid with $\Delta \equiv x_{i+1} - x_i$.  Define the vectors, $X,Y,Z \in \R^I$ such that,
+Denote the vector of drifts and variances as $\mu \equiv \set{\mu(x_i)}_{i=1}^I$ and $\sigma^2 \equiv \set{\sigma(x_i)^2}_{i=1}^I$.  For a uniform grid with $\Delta \equiv x_{i+1} - x_i$.  Define the vectors, $X,Y,Z \in \R^I$ such that,
 \begin{align}
 	X &= - \frac{\mu^{-}}{\Delta} + \frac{\sigma^{2}}{2\times \Delta^{2}}\label{eq:X} \\
 	Y &= - \frac{\mu^{+}}{\Delta} + \frac{\mu^{-}}{\Delta} - \frac{\sigma^{2}}{\Delta^{2}}\label{eq:Y} \\
@@ -89,12 +89,12 @@ b &\equiv \begin{bmatrix}(1-R_{\underline{x}})X_1\underline{v} \\ 0 \\ \vdots \\
 \mathcal{A}v(\set{x_i}) &\approx A v + b
 \end{align}
 
-Note that the special cases for the $1$st and $I$th row correspond to the boundary values and are adjusted depending on the type of boundary value. Also, note that the $b$ vector is all zeros if the boundary values are reflective (and individually can be $0$ if the matched value is $0$).
+Note that the special cases for the $1$st and $I$th row correspond to the boundary values and are adjusted depending on the type of boundary value. Also, note that the $b$ vector is all zeros if the boundary values are reflective and/or the matched value $\bar{v}$ or $\underline{v}$ is $0$).
 
 \paragraph{Intensity Matrix of a Continuous-Time Markov Chain}
 Note that with reflecting barriers on both sides, the sum for each row of $A$ is $X_i +Y_i + Z_i = 0$ for all $i = 1, \ldots I$ from \cref{eq:X,eq:Y,eq:Z}, and it can be shown that the diagonal is always negative.  Hence, we interpret the $A$ matrix fulfills the requirements of an intensity matrix (or infinitesimal generator matrix) of a continuous-time Markov chain.\footnote{See \url{https://en.wikipedia.org/wiki/Transition_rate_matrix} and \url{https://en.wikipedia.org/wiki/Markov_chain}.}  Furthermore, the Markov-chain has the convenient property that jumps are only between adjacent states (i.e. if at $x_i$ then can only jump to $x_{i-1}$ and $x_{i+1}$), which is extremely sparse.
 
-When the boundary value is absorbing at $\underline{x}$ or $\bar{x}$, the interpretation is a little trickier since the sum of all elements is not $0$.  Essentially, we need to take into account ``death'' since the agents are no longer reflected within the boundaries at all times.
+When the boundary value is absorbing at $\underline{x}$ or $\bar{x}$, the interpretation is a little trickier since the sum of all elements is not $0$.  Essentially, we need to take into account ``death'' since the agents are no longer reflected within the boundaries at all times.  This is the reason for a non-zero $b$ matrix.
 
 
 \paragraph{Interior of $A$:}
@@ -138,7 +138,7 @@ and the formula for the discretized operator is,
 \begin{align}
 	\mathcal{A} v(x_i)  &= \frac{v_i-v_{i-1}}{\Delta}\mu_i + \frac{\sigma_i^2}{2} \frac{v_{i+1} - 2 v_i + v_{i-1}}{\Delta^2},\quad \text{ for } i = 2,\ldots I-1\\
 	\intertext{With the reflecting barrier at $\underline{x}$ and $\bar{x}$,}
-	\mathcal{A} v(x_1) &= -\frac{\sigma^{2}}{2\times \Delta^{2}}\\
+	\mathcal{A} v(x_1) &= -\frac{\sigma^{2}}{2\Delta^{2}}v_1 + \frac{\sigma^{2}}{2\Delta^{2}} v_2\\
 \mathcal{A} v(x_I)&\approx \left(-\frac{\mu_I}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right) v_{I-1} + \left(\frac{\mu_I}{\Delta} - \frac{\sigma_I^2}{2\Delta^2}\right) v_I 
 \end{align}
 
