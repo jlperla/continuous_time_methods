@@ -1,4 +1,7 @@
 %Minor modifications to http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m
+
+%This can be used to generate code for comparing the new library.  see ../matlab/tests for more details.
+
 %clearvars -except  MADMaxDenseN MADMaxSparseFracForFull MADMinSparseN;
 %format compact;clc; close all;
 addpath('../lib/');
@@ -64,7 +67,7 @@ test_output.x = x;
 test_output.v = v;
 test_output.S = S;
 test_output.error = LCP_error;
-save('output_option_simple_LCP_HACT_raw.mat', 'test_output');
+dlmwrite('simple_LCP_HACT_1_v_output.csv', test_output.v,'precision','%.10f'); %Saves at 10 digit precision
 
 % plot(x,V_LCP,x,S,'--','LineWidth',2)
 % set(gca,'FontSize',16)

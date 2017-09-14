@@ -55,7 +55,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	%Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
 	z_iv = zeros(I,1); %initial guess.
 
-	%Box bounds, z_L <= z <= z_U.  In this formulation this means 0 <= z_i < infinity
+    %Box bounds, z_L <= z <= z_U.  In this formulation this means 0 <= z_i < infinity
 	z_L = zeros(I,1); %(12)
 	z_U = inf(I,1);
 

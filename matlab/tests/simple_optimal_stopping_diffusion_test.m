@@ -1,19 +1,11 @@
-% Generates the output data
-% call original code
 addpath('../lib/');
+main_script_tested = 'simple_optimal_stopping_diffusion';
 
-option_simple_LCP(); %A minimally modified version of the HACT code for comparison.  The main difference is generality and the boundary value at 0.
-
-% Define an absolute tolerance
-test_tol = 1e-10;
+% Define an absolute tolerance for floating point comparisons
+test_tol = 1e-9;
 
 %% Test 1: baseline HACT comparison
-%load results from the baseline setup.
-addpath('../');
-load output_option_simple_LCP_HACT_raw.mat 
-test_output_simple_HACT = test_output;  
-
-%Run the new code.
+%option_simple_LCP(); %A minimally modified version of the HACT code for comparison.  The main difference is generality and the boundary value at 0.  See /graveyard
 %In this test, the parameters need to be maintained to match the HACT code
 mu_bar = -0.01; %Drift.  Sign changes the upwind direction.
 sigma_bar = 0.01; %Variance
@@ -32,7 +24,6 @@ p.u_x = @(x) x.^gamma; %u(x) = x^gamma in this example
 p.S_x = @(x) S_bar.*ones(numel(x),1); %S(x) = S_bar in this example
 p.mu_x = @(x) mu_bar * ones(numel(x),1); %i.e. mu(x) = mu_bar
 p.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = sigma_bar x
-%TODO: In the old version, why does the sigma_bar multiple the grid x, but not the drift?  Is this a mistake in missing out the drift of the brownian motion term?
 
 %Settings for the solution method
 settings.I = 1000; %number of grid variables for x
@@ -41,9 +32,9 @@ settings.error_tolerance = 10^(-6);
 
 %Create uniform grid and determine step sizes.
 results = simple_optimal_stopping_diffusion(p, settings);
+v = results.v;
 
 %Check all values
-assert(max(abs(results.x - test_output_simple_HACT.x)) < test_tol, 'grid different');
-assert(max(abs(results.v - test_output_simple_HACT.v)) < test_tol, 'value solution different');
-assert(max(abs(results.S - test_output_simple_HACT.S)) < test_tol, 'S solution different');
+v_old = dlmread(strcat(main_script_tested,'_1_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
+assert(max(abs(v - v_old)) < test_tol, 'Value of solution no longer matches HACT example');
 
