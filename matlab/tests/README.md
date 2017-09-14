@@ -54,8 +54,8 @@ assert(norm(A - A2, Inf) < tol, 'A has changed compared to the old version')
 ```
  A = 2.0101 * speye(2); %From some sparse matrix
  [indices_i, indices_j, val_ij] = find(A); %Trick to get indicies and values in vectors
- dlmwrite('test_sparse_1_A_output.csv', [indices_i indices_j val_ij],'precision','%.10f'); %Stores these as columns. 
- A_sparse = dlmread('test_sparse_1_A_output.csv');
+ dlmwrite('sparse_matrix_1_A_output.csv', [indices_i indices_j val_ij],'precision','%.10f'); %Stores these as columns. 
+ A_sparse = dlmread('sparse_matrix_1_A_output.csv');
  A_new = sparse(A_sparse(:,1), A_sparse(:,2), A_sparse(:,3));
  assert(norm(A - A_new, Inf) < test_tol);
  ```
