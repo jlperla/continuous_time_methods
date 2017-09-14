@@ -47,15 +47,14 @@ A_old = dlmread('test_1_A_output.csv');
 %Check they are close to the same with the infinity norm.
 assert(norm(A - A2, Inf) < tol, 'A has changed compared to the old version')
 ```
-* Save files as CSV where possible, rather than storing matlab files.  The reason is to make it easier to examine changes in `git` and to use the same test file for different languages in a `python`, `julia`, or `C++` port of the algorithm.  To make that sane, use a naming convention for variables.
-* Naming convention for output files to compare:
-  * Given a test called `MYTEST_test.m`, within the `Test 1` section, and with variable `MYVAR, call the file: `MYTEST_1_MYVAR_output.csv`
+* Save files as CSV where possible, rather than storing matlab files.  The reason is to make it easier to examine changes in `git` and to use the same test file for different languages in a `python`, `julia`, or `C++` port of the algorithm.  To do this, maintain a naming  convention for files relative to the test and variable:
+  * Given a test called `MYTEST_test.m`, within the `Test 1` section, and with variable `MYVAR`, call the file: `MYTEST_1_MYVAR_output.csv`
 * For sparse matrices, `dlmwrite` won't work directly, as it only stores dense matrices.  To get around this, you will need to convert the matrix to a sparse format and then convert back when loading. For example, see this roundtrip of saving and storing.
 ```
  A = 2.0101 * speye(2); %From some sparse matrix
- [indices_i, indices_j, val_ij] = find(A); %Trick to get indicies and values in vectors
- dlmwrite('sparse_matrix_1_A_output.csv', [indices_i indices_j val_ij],'precision','%.10f'); %Stores these as columns. 
- A_sparse = dlmread('sparse_matrix_1_A_output.csv');
- A_new = sparse(A_sparse(:,1), A_sparse(:,2), A_sparse(:,3));
+ [indices_i, indices_j, val_ij] = find(A); %Get indicies and values as vectors
+ dlmwrite('sparse_matrix_1_A_output.csv', [indices_i indices_j val_ij],'precision','%.10f');
+ 
+ A_new = spconvert(dlmread('sparse_matrix_1_A_output.csv')); %Reading is a little easier given this format.
  assert(norm(A - A_new, Inf) < test_tol);
  ```
