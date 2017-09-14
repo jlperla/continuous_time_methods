@@ -9,3 +9,5 @@ disp('Summarizing Performance');
 fullTable = vertcat(perf_results.Samples);
 summaryStats = varfun(@mean,fullTable,...
     'InputVariables','MeasuredTime','GroupingVariables','Name')
+
+%Could test here for speed regressions as required.
