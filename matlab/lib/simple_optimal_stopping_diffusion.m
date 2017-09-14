@@ -13,6 +13,17 @@
 
 function [results] = simple_optimal_stopping_diffusion(p, settings)
 
+    %% Default settings
+    if ~isfield(settings, 'print_level')
+        settings.print_level = 0;
+    end
+    if ~isfield(settings, 'error_tolerance')
+        settings.error_tolerance = 10^(-6);
+    end
+    if ~isfield(settings, 'method')
+        settings.method = 'Yuval'; %Default is the Yuval LCP downloaded from matlabcentral
+    end
+    
 	%%  Unpack parameters and settings
 	rho = p.rho; %Discount rate
 	u_x = p.u_x; %utility function
@@ -48,31 +59,41 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
 	u = u_x(x);
 	S = S_x(x);
-	B = rho*speye(I) - A; %(6)
-	q = -u + B*S; %(8)
 
 	%% Solve the LCP version of the model
-	%Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
-	z_iv = zeros(I,1); %initial guess.
+    %Choose based on the method type.
+    if strcmp(settings.method, 'Yuval')
+        %Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
+        B = rho*speye(I) - A; %(6)
+        q = -u + B*S; %(8)
+        
+        z_iv = zeros(I,1); %initial guess.
 
-    %Box bounds, z_L <= z <= z_U.  In this formulation this means 0 <= z_i < infinity
-	z_L = zeros(I,1); %(12)
-	z_U = inf(I,1);
+        %Box bounds, z_L <= z <= z_U.  In this formulation this means 0 <= z_i < infinity
+        z_L = zeros(I,1); %(12)
+        z_U = inf(I,1);
 
-	z = LCP(B, q, z_L, z_U, z_iv, settings.display);
-	error = z.*(B*z + q); %(11)
+        z = LCP(B, q, z_L, z_U, z_iv, (settings.print_level > 0));
+        error = z.*(B*z + q); %(11)
 
-	LCP_error = max(abs(error));
-	if(LCP_error > settings.error_tolerance)
-		if(settings.display) 
-            disp('Failure to converge')
-		end
-		results.success = false;
-		exit;
-	end
-	 
-	%% Convert from z back to v and plot results
-	v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
+        LCP_error = max(abs(error));
+        if(LCP_error > settings.error_tolerance)
+            if(settings.display) 
+                disp('Failure to converge')
+            end
+            results.success = false;
+            exit;
+        end
+
+        %% Convert from z back to v and plot results
+        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
+    elseif strcmp(settings.method, 'knitro')
+        results = NaN;
+        assert(false, 'Knitro in progress');
+    else
+        results = NaN;
+        assert(false, 'Unsupported method to solve the LCP');        
+    end
 	
 	%% Package Results
     %Discretization results

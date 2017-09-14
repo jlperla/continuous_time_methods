@@ -1,13 +1,13 @@
 addpath('../lib/');
 main_script_tested = 'discretize_univariate_diffusion';
-
+default_csv_precision = '%.10f'; %Should be higher precision than test_tol
 % Define an absolute tolerance for floating point comparisons
 test_tol = 1e-9;
 
 verify_stochastic_matrix = @(A) max(abs(full(sum(A,2)))) < test_tol; %Ensures that all rows sum to 0, which is essential for an intensity matrix.  Wouldn't hold without reflective barriers in this csae.
 verify_negative_diagonal = @(A) max(full(diag(A))) <= 0;  %intensity matrices need to have negatives along the diagonal
 
-%% Test 1: Simple and small with zero drift
+%% Test 1: Simple and small with zero drift with uniform grid
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
@@ -15,23 +15,53 @@ verify_negative_diagonal = @(A) max(full(diag(A))) <= 0;  %intensity matrices ne
     x_max = 1;
     I = 5;
     [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-    assert(verify_stochastic_matrix(A));
-    assert(verify_negative_diagonal(A));
+    %TODO: Check that these results actually make sense.  Also could save in a file.
+    A_check = [ 0 0 0 0 0;0.0050 -0.0100 0.0050 0 0; 0 0.0200 -0.0400 0.0200 0; 0 0 0.0450 -0.0900 0.0450; 0 0 0 0.0800 -0.0800];
+    assert(norm(A - A_check, Inf) < test_tol, 'A value no longer matches');
     
-%% Test 2: Large Matrix, no drift
+    %The following are worth testing for almost every matrix in the test suit.
+    assert(verify_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
+    assert(verify_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
+    assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+    
+    
+%% Test 2: Large Matrix, no drift with uniform grid
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
     x_min = 0;
     x_max = 1;
-    I = 1000000;
+    I = 1000000; %million X million matrix, but sparse.
     [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-    assert(verify_stochastic_matrix(A));
-    assert(verify_negative_diagonal(A));
-
-
-
-
+    
+    %The following are worth testing for almost every matrix in the test suit.
+    assert(nnz(A) == 2999996, 'Number of non-zero values is wrong'); %Should have about 3million non-zeros.  Tridiagonal.
+    assert(verify_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
+    assert(verify_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
+    assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+    %No need to compare to a stored version at this point, more a quetsion of ensuring the speed doesn't collapse
+    
+%% Test 3: Negative drift with uniform grid
+    mu_x = @(x) zeros(numel(x),1);
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    x_min = 0;
+    x_max = 1;
+    I = 1001;
+    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
+    
+    %To save the file again, can uncomment this.
+    %[indices_i, indices_j, values_ij] = find(A);
+    %dlmwrite(strcat(main_script_tested, '_3_A_output.csv'), [indices_i indices_j values_ij], 'precision', default_csv_precision);
+    
+    %Load and check against the sparse matrix file.
+    A_check = spconvert(dlmread(strcat(main_script_tested, '_3_A_output.csv')));
+    assert(norm(A - A_check, Inf) < test_tol, 'A value no longer matches');
+    
+    %The following are worth testing for almost every matrix in the test suit.
+    assert(verify_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
+    assert(verify_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
+    assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
 
 % TODO: Moving to a separate test file.
 % 	% Variation 1: construct the A assuming that mu < 0 (i.e., the direction of the finite differences is known a-priori)

@@ -32,7 +32,7 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2)
 		A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
 	else
 		A = NaN;
-		assert(false, 'not yet supported');
+		assert(false, 'Non-uniform grids are not yet supported');
 	end	
 end	
 
