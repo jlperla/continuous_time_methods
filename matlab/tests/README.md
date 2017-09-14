@@ -35,7 +35,8 @@ assert(norm(A - A_old, Inf) < tol); %Also works for matrices, and even sparse ma
 ```
 % Assume that a large `A` matrix which was previuosly generated and needs to be checked against.
 % It could be written to a file (kept in the tests directory) as `test_1_A_output.csv` with:
-% dlmwrite('test_1_A_output.csv', A,'precision','%.10f'); %Saves a csv file with 10 digits precision.  Avoid csvread/etc. in matlab since they have limited precision.
+% dlmwrite('test_1_A_output.csv', A,'precision','%.10f'); %Saves a csv file with 10 digits precision.
+%Avoid csvread/etc. in matlab since they have limited precision.
 
 %% Test 1: Check A against the old version
 %... calculate new A matrix
@@ -48,7 +49,7 @@ assert(norm(A - A2, Inf) < tol, 'A has changed compared to the old version')
 ```
 * Save files as CSV where possible, rather than storing matlab files.  The reason is to make it easier to examine changes in `git` and to use the same test file for different languages in a `python`, `julia`, or `C++` port of the algorithm.  To make that sane, use a naming convention for variables.
 * Naming convention for output files to compare:
-  * GIven a test called `MYTEST.m`, within the `Test 1` section, and with variable `MYVAR, call the file: `MYTEST_1_MYVAR_output.csv`
+  * Given a test called `MYTEST_test.m`, within the `Test 1` section, and with variable `MYVAR, call the file: `MYTEST_1_MYVAR_output.csv`
 * For sparse matrices, `dlmwrite` won't work directly, as it only stores dense matrices.  To get around this, you will need to convert the matrix to a sparse format and then convert back when loading. For example, see this roundtrip of saving and storing.
 ```
  A = 2.0101 * speye(2); %From some sparse matrix
@@ -57,4 +58,4 @@ assert(norm(A - A2, Inf) < tol, 'A has changed compared to the old version')
  A_sparse = dlmread('test_sparse_1_A_output.csv');
  A_new = sparse(A_sparse(:,1), A_sparse(:,2), A_sparse(:,3));
  assert(norm(A - A_new, Inf) < test_tol);
- 
+ ```
