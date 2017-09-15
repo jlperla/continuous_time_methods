@@ -13,6 +13,10 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2)
 	%Check if the grid is uniform
 	tol = 1E-10; %Tolerance for seeing if the grid is uniform
 	Delta_p = diff(x); %(1) Find distances between grid points.
+    
+    assert(sigma_2(1) > 0 || mu(1) > 0, 'Cannot jointly have both sigma = 0 or mu < 0 at x_min, or an absorbing state');
+    assert(sigma_2(end) > 0 || mu(end) < 0, 'Cannot jointly have both sigma = 0 or mu > 0 at x_max, or an absorbing state');
+    
 	if(abs(min(Delta_p) - max(Delta_p)) < tol) %i.e. a uniform grid within tolerance
 		Delta = x(2)-x(1); % (1)
 		Delta_2 = Delta^2; %Just squaring the Delta for the second order terms in the finite differences.
@@ -25,7 +29,7 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2)
 		Z =  mu_p/Delta + sigma_2/(2*Delta_2); %(9)
 		
 		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
-		A = spdiags([[X(2:I); 0] Y [0; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is correct.  Corners will require adjustment    
+		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is correct.  Corners will require adjustment    
 		
 		%Manually adjust the boundary values at the corners.
 		A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)

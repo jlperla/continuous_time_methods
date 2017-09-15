@@ -8,7 +8,7 @@ addpath('../lib/');
 rho = 0.05;
 
 I= 1000;
-xmin = 0; xmax=1;
+xmin = 0.1; xmax=1;
 x = linspace(xmin,xmax,I)';
 dx = x(2)-x(1);
 dx2 = dx^2;
@@ -67,7 +67,7 @@ test_output.x = x;
 test_output.v = v;
 test_output.S = S;
 test_output.error = LCP_error;
-dlmwrite('simple_LCP_HACT_1_v_output.csv', test_output.v,'precision','%.10f'); %Saves at 10 digit precision
+dlmwrite('simple_optimal_stopping_diffusion_1_v_output.csv', test_output.v,'precision','%.10f'); %Saves at 10 digit precision
 
 % plot(x,V_LCP,x,S,'--','LineWidth',2)
 % set(gca,'FontSize',16)

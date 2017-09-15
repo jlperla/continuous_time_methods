@@ -5,18 +5,19 @@ default_csv_precision = '%.10f'; %Should be higher precision than test_tol
 test_tol = 1e-9;
 
 verify_stochastic_matrix = @(A) max(abs(full(sum(A,2)))) < test_tol; %Ensures that all rows sum to 0, which is essential for an intensity matrix.  Wouldn't hold without reflective barriers in this csae.
-verify_negative_diagonal = @(A) max(full(diag(A))) <= 0;  %intensity matrices need to have negatives along the diagonal
+verify_negative_diagonal = @(A) max(full(diag(A))) < 0;  %intensity matrices need to have negatives along the diagonal
 
 %% Test 1: Simple and small with zero drift with uniform grid
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
-    x_min = 0;
+    x_min = 0.01;
     x_max = 1;
     I = 5;
     [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-    %TODO: Check that these results actually make sense.  Also could save in a file.
-    A_check = [ 0 0 0 0 0;0.0050 -0.0100 0.0050 0 0; 0 0.0200 -0.0400 0.0200 0; 0 0 0.0450 -0.0900 0.0450; 0 0 0 0.0800 -0.0800];
+    %dlmwrite(strcat(main_script_tested, '_1_A_output.csv'), full(A), 'precision', default_csv_precision); %Uncomment to save again
+    A_check = dlmread(strcat(main_script_tested, '_1_A_output.csv'));    
+    
     assert(norm(A - A_check, Inf) < test_tol, 'A value no longer matches');
     
     %The following are worth testing for almost every matrix in the test suit.
@@ -29,13 +30,14 @@ verify_negative_diagonal = @(A) max(full(diag(A))) <= 0;  %intensity matrices ne
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
-    x_min = 0;
+    x_min = 0.01;
     x_max = 1;
     I = 1000000; %million X million matrix, but sparse.
     [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-    
+
+   
     %The following are worth testing for almost every matrix in the test suit.
-    assert(nnz(A) == 2999996, 'Number of non-zero values is wrong'); %Should have about 3million non-zeros.  Tridiagonal.
+    assert(nnz(A) == 2999998, 'Number of non-zero values is wrong'); %Should have about 3million non-zeros.  Tridiagonal.
     assert(verify_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
     assert(verify_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
     assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
@@ -45,14 +47,14 @@ verify_negative_diagonal = @(A) max(full(diag(A))) <= 0;  %intensity matrices ne
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
-    x_min = 0;
+    x_min = 0.01;
     x_max = 1;
     I = 1001;
     [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
     
     %To save the file again, can uncomment this.
-    %[indices_i, indices_j, values_ij] = find(A);
-    %dlmwrite(strcat(main_script_tested, '_3_A_output.csv'), [indices_i indices_j values_ij], 'precision', default_csv_precision);
+    %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
+    %dlmwrite(strcat(main_script_tested, '_3_A_output.csv'), [indices_i indices_j values_ij], 'precision', default_csv_precision); %Uncomment to save again
     
     %Load and check against the sparse matrix file.
     A_check = spconvert(dlmread(strcat(main_script_tested, '_3_A_output.csv')));
