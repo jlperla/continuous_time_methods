@@ -122,7 +122,8 @@ clear 'settings';
     settings.max_iterations = 100000;
     settings.tolerance = 1E-8;
     settings.display = true;
-     disp('LLS No Preconditioner');
+    
+    disp('LLS No Preconditioner');
     tic;
     f_lls = stationary_distribution_discretized_univariate(A,x, settings);
     toc;
@@ -134,8 +135,21 @@ clear 'settings';
     f_lls = stationary_distribution_discretized_univariate(A,x, settings);
     toc;
     assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
+    disp('incomplete_LU Preconditioner with guess');
+    settings.preconditioner = 'incomplete_LU';
+    settings.initial_guess = linspace(6,.1,I);
+    tic;
+    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
+    toc;
+    
+    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');    
     
     disp('Jacobi Preconditioner');
+    clear 'settings';
+    settings.method = 'LLS';
+    settings.max_iterations = 100000;
+    settings.tolerance = 1E-8;
+    settings.display = true;
     settings.preconditioner = 'jacobi';
     tic;
     f_lls = stationary_distribution_discretized_univariate(A,x, settings);

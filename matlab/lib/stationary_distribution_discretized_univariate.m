@@ -84,7 +84,12 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
          else
             preconditioner = [];
          end
-        [f,flag,relres,iter] = lsqr([A';ones(1,I)], sparse([zeros(I,1);1]), tolerance, max_iterations, preconditioner); %Linear least squares.  Note tolerance changes with I
+         if(isfield(settings, 'intial_guess'))
+             initial_guess = settings.initial_guess / sum(settings.initial_guess); %It normalized to 1 for simplicity.
+         else
+             initial_guess = [];
+         end
+        [f,flag,relres,iter] = lsqr([A';ones(1,I)], sparse([zeros(I,1);1]), tolerance, max_iterations, preconditioner, [], initial_guess); %Linear least squares.  Note tolerance changes with I
         if(flag==0)
             success = true;
         else
