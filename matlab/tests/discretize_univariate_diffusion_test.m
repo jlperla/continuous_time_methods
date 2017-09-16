@@ -9,6 +9,7 @@ is_stochastic_matrix = @(A) max(abs(full(sum(A,2)))) < test_tol; %Ensures that a
 is_negative_diagonal = @(A) max(full(diag(A))) < 0;  %intensity matrices need to have negatives along the diagonal
 is_negative_definite = @(A) all(eig(full(A)) < test_tol);%probably shouldn't use for large sparse matrices.  I think this is necessary?
 
+clear 'settings';
 %% Test 1: Simple and small with zero drift with uniform grid
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
@@ -97,17 +98,52 @@ is_negative_definite = @(A) all(eig(full(A)) < test_tol);%probably shouldn't use
     settings.method = 'eigenproblem';
 %    settings.max_iterations = 1000;
     settings.num_basis_vectors = 100;
+   disp('Find one eigenvalue');       
+    tic;
     f = stationary_distribution_discretized_univariate(A, x, settings);  
+    toc;
     %dlmwrite(strcat(main_script_tested, '_5_f_output.csv'), f, 'precision', default_csv_precision); %Uncomment to save again
 
     %Check correct
     f_check = dlmread(strcat(main_script_tested, '_5_f_output.csv'));    
     assert(norm(f - f_check, Inf) < test_tol, 'f value no longer matches');
+    
+    settings.method = 'eigenproblem_all';
+%    settings.max_iterations = 1000;
+    settings.num_basis_vectors = 100;
+    disp('All eigenvalues');
+    tic;
+    f = stationary_distribution_discretized_univariate(A, x, settings);  
+    toc;
+    assert(norm(f - f_check, Inf) < test_tol, 'f value no longer matches');
+  
     clear 'settings';
     settings.method = 'LLS';
     settings.max_iterations = 100000;
     settings.tolerance = 1E-8;
     settings.display = true;
+     disp('LLS No Preconditioner');
+    tic;
+    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
+    toc;
+    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
+
+    disp('incomplete_LU Preconditioner');
+    settings.preconditioner = 'incomplete_LU';
+    tic;
+    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
+    toc;
+    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
+    
+    disp('Jacobi Preconditioner');
+    settings.preconditioner = 'jacobi';
+    tic;
+    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
+    toc;
+    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
+    
+    disp('Incomplete Cholesky Preconditioner');
+    settings.preconditioner = 'incomplete_cholesky';
     tic;
     f_lls = stationary_distribution_discretized_univariate(A,x, settings);
     toc;

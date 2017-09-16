@@ -37,28 +37,54 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
         success = true;
    elseif(strcmp(settings.method, 'eigenproblem_all')) %Will use sparsity but computes all of the eigenvaluse/eigenvectors.  Use if `eigenproblem' didn't work.
         opts.isreal = true;
-       if(isfield(settings, 'num_basis_vectors')) %OTherwise use the default
+        if(isfield(settings, 'num_basis_vectors')) %OTherwise use the default
            opts.p = settings.num_basis_vectors; %Number of Lanczos basis vectors.
         end
          if(isfield(settings, 'max_iterations')) %OTherwise use the default
-           opts.maxit = settings.max_iterations; %Number of iterations
+          opts.maxit = settings.max_iterations; %Number of iterations
         end
-        [V,D] = eigs(A' + speye(I), I, opts); %Gets all of the eigenvalues and eigenvectors.  Might be slow, so try `eigenproblem` first.
+        [V,D] = eigs(A' + speye(I), I, 'lr',opts); %Gets all of the eigenvalues and eigenvectors.  Might be slow, so try `eigenproblem` first.
+        unity_index = find(abs(diag(D) - 1) < 1E-9);       
         
-        f = V / sum(V); %normalize to sum to 1.  Could add other normalizations using the grid 'x' depending on settings.normalization 
-        success = true;      
-   elseif(strcmp(settings.method, 'LLS')) %Solves a linear least squares problem adding in the sum constraint
+        if(isempty(unity_index))
+            if(settings.display)
+                disp('Cannot find eigenvalue of unity.');
+            end
+            success = false;
+            f = NaN;
+            return;
+        end
+        f = V(:,unity_index) / sum(V(:,unity_index)); %normalize to sum to 1.  Could add other normalizations using the grid 'x' depending on settings.normalization 
+        success = true;
+        
+     elseif(strcmp(settings.method, 'LLS')) %Solves a linear least squares problem adding in the sum constraint
          if(isfield(settings, 'max_iterations')) %OTherwise use the default
             max_iterations = settings.max_iterations; %Number of iterations
          else
-            max_iterations = 50; %The default is too small for our needs
+            max_iterations = 10*I; %The default is too small for our needs
          end
          if(isfield(settings, 'tolerance')) %OTherwise use the default
             tolerance = settings.tolerance; %Number of iterations
          else
             tolerance = []; %Empty tells it to use default
-         end         
-        [f,flag,relres,iter] = lsqr([A';ones(1,I)], sparse([zeros(I,1);1]), tolerance, max_iterations); %Linear least squares.  Note tolerance changes with I
+         end 
+         if(isfield(settings, 'preconditioner'))
+             if(strcmp(settings.preconditioner,'jacobi'))
+                 preconditioner = diag(diag(A)); %Jacobi preconditioner is easy to calculate.  Helps a little
+             elseif(strcmp(settings.preconditioner,'incomplete_cholesky'))
+                 %Matter if it is negative or positive?
+                   preconditioner =-ichol(-A, struct('type','ict','droptol',1e-3,'diagcomp',1));% ichol(A, struct('diagcomp', 10, 'type','nofill','droptol',1e-1)); %matlab formula exists
+             elseif(strcmp(settings.preconditioner,'incomplete_LU'))
+                 %Matter if it is negative or positive?
+                  [L,U] = ilu(A);
+                  preconditioner = L;
+            else
+                 assert(false, 'Preconditioner type not supported');
+             end
+         else
+            preconditioner = [];
+         end
+        [f,flag,relres,iter] = lsqr([A';ones(1,I)], sparse([zeros(I,1);1]), tolerance, max_iterations, preconditioner); %Linear least squares.  Note tolerance changes with I
         if(flag==0)
             success = true;
         else
