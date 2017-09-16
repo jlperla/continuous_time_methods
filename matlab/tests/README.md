@@ -6,7 +6,7 @@ This folder contains the test-suite for the matlab library and examples in the r
   * Matlab seems to finds the tests by checking if the filename `test` in it.  So the naming convention of files should end with `_test.m`
 
 * Within a test file then put in an ordered list of the tests with names, e.g. 
-```
+```matlab
 %% Test 1: MY TEST NAME
 % ... code ...
 assert(1==1, 'one does not equal one); %Put in checks as an assertion, this would probably pass
@@ -20,19 +20,19 @@ assert(0==1, 'zero does not equal one'); %Put in checks as an assertion
 ## Tips for Writing Test Conditions
 The idea of a test is to comprehensively check that all the results are correct.  Instead of doing this informally during debugging, you should just add the checks into the test file.  At that point, the checks can be run again anytime the code changes.  A few tips:
 * When asserting, do not compare floating points with equality, since they may have small differences due to machine precision.  Instead, use a tolerance:
-```
+```matlab
 tol = 1E-10;
 assert(a == a_old ); %Don't use for floating point a and a_old!
 assert(abs(a - a_old) < tol); %Do it this way instead.
 ```
 * To compare matrices and vectors, use the `norm`.  The `Inf` norm is the maximum, and is the only one supported by sparse matrices/vectors
-```
+```matlab
 assert(norm(b - b_old, Inf) < tol); %If b and b_old are vectors 
 assert(norm(A - A_old, Inf) < tol); %Also works for matrices, and even sparse matrices.
 ```
 
 * If the data to check against is too large to write inline in the test, save it as an external file and load it.  For example,
-```
+```matlab
 % Assume that a large `A` matrix which was previuosly generated and needs to be checked against.
 % It could be written to a file (kept in the tests directory) as `test_1_A_output.csv` with:
 % dlmwrite('test_1_A_output.csv', A,'precision','%.10f'); %Saves a csv file with 10 digits precision.
@@ -50,11 +50,11 @@ assert(norm(A - A2, Inf) < tol, 'A has changed compared to the old version')
 * Save files as CSV where possible, rather than storing matlab files.  The reason is to make it easier to examine changes in `git` and to use the same test file for different languages in a `python`, `julia`, or `C++` port of the algorithm.  To do this, maintain a naming  convention for files relative to the test and variable:
   * Given a test called `MYTEST_test.m`, within the `Test 1` section, and with variable `MYVAR`, call the file: `MYTEST_1_MYVAR_output.csv`
 * For sparse matrices, `dlmwrite` won't work directly, as it only stores dense matrices.  To get around this, you will need to convert the matrix to a sparse format and then convert back when loading. For example, see this roundtrip of saving and storing.
-```
+```matlab
  A = 2.0101 * speye(2); %From some sparse matrix
  [indices_i, indices_j, val_ij] = find(A); %Get indicies and values as vectors
  dlmwrite('sparse_matrix_1_A_output.csv', [indices_i indices_j val_ij],'precision','%.10f');
  
  A_new = spconvert(dlmread('sparse_matrix_1_A_output.csv')); %Reading is a little easier given this format.
  assert(norm(A - A_new, Inf) < test_tol);
- ```
+```
