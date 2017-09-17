@@ -68,6 +68,44 @@ clear 'settings';
     assert(is_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
     assert(is_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
     assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+%% Test 6: Solving simple value function
+    mu_x = @(x) -0.01 * x;
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    u_x = @(x) exp(x);
+    rho = 0.05;
+    x_min = 1;
+    x_max = 2;
+    I = 20;
+    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);  
+    u = u_x(x);
+    
+    %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.
+    [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho);
+%    dlmwrite(strcat(main_script_tested, '_6_v_output.csv'), v, 'precision', default_csv_precision); %Uncomment to save again
+    v_check = dlmread(strcat(main_script_tested, '_6_v_output.csv'));    
+    assert(norm(v - v_check, Inf) < test_tol, 'v value no longer matches');
+
+%% Test 7: Solving simple (bigger) value function
+    mu_x = @(x) -0.01 * x;
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    u_x = @(x) log(x);
+    rho = 0.05;
+    x_min = .01;
+    x_max = 10;
+    I = 10000;
+    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);  
+    u = u_x(x);
+    
+    %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.
+    tic;
+    [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho);
+    toc;
+%    dlmwrite(strcat(main_script_tested, '_7_v_output.csv'), v, 'precision', default_csv_precision); %Uncomment to save again
+    v_check = dlmread(strcat(main_script_tested, '_7_v_output.csv'));    
+    assert(norm(v - v_check, Inf) < test_tol, 'v value no longer matches');
+
 %% Test 4: Find Stationary Distribution with two methods
     mu_x = @(x) -0.01 * x;
     sigma_bar = 0.1;

@@ -48,7 +48,7 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
         
         if(isempty(unity_index))
             if(settings.display)
-                disp('Cannot find eigenvalue of unity.');
+                disp('Cannot find eigenvalue of 1.');
             end
             success = false;
             f = NaN;

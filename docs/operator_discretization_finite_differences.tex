@@ -157,9 +157,9 @@ Given a model without any birth/death/stopping, let the pdf of the distribution 
 where $\omega \in \R^I$ is a quadrature weight to ensure it integrates to $1$.  For crude simplicity, could use a vector of $1$s.  Alternatively, $\omega$ could be trapezoidal or simpsons rule weights (depending on if th$x$ grid is uniform).
 \paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} can be written as an eigenvalue problem by adding $f$ to both sides,
 \begin{align}
-	(A^T + \mathbb{I})f &= f
+	(A^T + \mathbf{I})f &= f
 \end{align}
-Therefore, the stationary distribution can be found as the eigenvector of $A^T + \mathbb{I}$ associated with the unity eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
+Therefore, the stationary distribution can be found as the eigenvector of $A^T + \mathbf{I}$ associated with the unity eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
 
 \paragraph{As a Linear-Least Squares Problem} Alternatively, consider solving \cref{eq:linear-operator-stationary,eq:linear-operator-sum} as the following linear least squares problem, subject to $f \geq 0$ inequality constraint.
 
@@ -171,8 +171,28 @@ Therefore, the stationary distribution can be found as the eigenvector of $A^T +
 	X &\equiv \begin{bmatrix}
 		A^T\\
 		\omega
-		\end{bmatrix}\in \R^{(I+1)\times I}
+		\end{bmatrix}\in \R^{(I+1)\times I}\label{eq:KFE-least-squares}
 \end{align}
+
+\subsection{Solving Simple Time-Independent Linear HJBE}\label{sec:simple-HJBE}
+In the simple case of an uncontrolled linear stochastic process with no optimal stopping, if an agent has payoff $u(x)$ with discounting $\rho > 0$, then the following HJBE determines the value
+\begin{align}
+	\rho v(x) &= u(x) + \mathcal{A}v(x)\\
+	\intertext{subject to the appropriate boundary conditions.  Discretizing the grid, let $u \equiv \set{u(x_i)}_{i=1}^I\in\R^I$, then the discretized version is,}
+	\rho v &= u + A v\\
+	\intertext{Or,}
+	(\rho \mathbf{I} - A) v &= u\label{eq:discretized-linear-HJBE}
+	\intertext{This simple linear system can be solved for $v$.  In principle, the HJBE and the KFE could be solved at the same time (here they are uncoupled, but in principle there could be direct connections in a nonlinear setup) by stacking $q \equiv \begin{bmatrix}v & f\end{bmatrix}^T\in\R^{2 I}$ \cref{eq:discretized-linear-HJBE,eq:KFE-least-squares} as a linear least squares problem,}
+	\min_{q}& \norm{y - X q}^2\\
+\intertext{Where,}
+y &\equiv \begin{bmatrix}u \\0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{2 I + 1}\\
+X &\equiv \begin{bmatrix}
+	\rho \mathbf{I} - A\\
+	A^T\\
+	\omega
+\end{bmatrix}\in \R^{(2 I+1)\times I}\label{eq:KFE-HJBE-least-squares}	
+\end{align}
+If problems occur with negativity of the $f$, then linear constraints could be added.
 
 \section{Time-Dependent Univariate Diffusions}\label{sec:time-dependent-univariate-diffusion}
 This section implements a version of \cref{sec:time-dependent-univariate-diffusion}, but where important parameters/settings/etc. vary with time.  In that case, the SDE is
