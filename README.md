@@ -1,7 +1,9 @@
 # Examples of Methods for Continuous Time Problems
 
-## Discretization of Operators
-The notes go through details on discretization with finite differences and upwind schemes.
+## Detailed Notes on Methods
+* See [operator_discretization_finite_differences.pdf](operator_discretization_finite_differences.pdf) for details on the discretization of the stochastic proceses , and the solution to simple value function and stationary distribution calculuations.
+* See [optimal_stopping.pdf](optimal_stopping.pdf) for details on solving optimal stopping problem (given the discretization).
+
 
 ## Structure of folders
 * The source for the documentation of all algorithms is in [docs/](docs/). 
