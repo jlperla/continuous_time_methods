@@ -3,3 +3,4 @@ addpath('../lib');
 clc;
 disp('*******Running all Tests*****');
 test_results = runtests(pwd,'IncludeSubfolders',true);
+table(test_results)
