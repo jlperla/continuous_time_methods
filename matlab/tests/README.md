@@ -3,13 +3,13 @@ This folder contains the test-suite for the matlab library and examples in the r
 
 ## Running the test suite
 * To run all the tests, use: `run_tests`
-* To run a particular file, example: `runtests('KFE_discretized_univariate_test')
-* To run a particular function in a particular file, example: `runtests('KFE_discretized_univariate_test/small_LLS_vs_eigenvalue_test')
+* To run a particular file, example: `runtests('KFE_discretized_univariate_test')`
+* To run a particular function in a particular file, example: `runtests('KFE_discretized_univariate_test/small_LLS_vs_eigenvalue_test')`
 * To run the performance test, `run_performance_tests`
 
 ## How to Add a Test to a File
 * For an existing file, just add a new function with `_test` at the end.  The unit testing framework will run it as required.
-   * For testing the function, useful to run in isoluation (e.g. `runtests('KFE_discretized_univariate_test/small_LLS_vs_eigenvalue_test')`)
+   * For testing the function, useful to run in isoluation (e.g. `runtests('KFE_discretized_univariate_test/small_LLS_vs_eigenvalue_test'))`
    * To check something, use `verifyTrue(testCase, THE_CONDITION_TO_VERIFY, 'The string if failed...')` or anything in https://www.mathworks.com/help/matlab/matlab_prog/types-of-qualifications.html
 * When writing the function, keep in mind that `setupOnce(testCase)` runs at the beginning of any test, and `setup(testCase)` runs before every function separately.  (If those functions exist)
 
