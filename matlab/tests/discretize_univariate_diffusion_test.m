@@ -1,207 +1,92 @@
-addpath('../lib/');
-main_script_tested = 'discretize_univariate_diffusion';
-default_csv_precision = '%.10f'; %Should be higher precision than test_tol
-% Define an absolute tolerance for floating point comparisons
-test_tol = 1e-9;
-lower_test_tol = 1e-6;
+%Using the unit testing framework in matlab.  See https://www.mathworks.com/help/matlab/matlab_prog/write-simple-test-case-with-functions.html
+%To run tests:
+% runtests %would run all of them in the current directory
+% runtests('my_test') %runs just the my_test.m file
+% runtests('my_test/my_function_test') %runs only `my_function_test function in `my_test'.
 
-is_stochastic_matrix = @(A) max(abs(full(sum(A,2)))) < test_tol; %Ensures that all rows sum to 0, which is essential for an intensity matrix.  Wouldn't hold without reflective barriers in this csae.
-is_negative_diagonal = @(A) max(full(diag(A))) < 0;  %intensity matrices need to have negatives along the diagonal
-is_negative_definite = @(A) all(eig(full(A)) < test_tol);%probably shouldn't use for large sparse matrices.  I think this is necessary?
+function tests = discretize_univariate_diffusion_test
+    tests = functiontests(localfunctions);
+end
 
-clear 'settings';
-%% Test 1: Simple and small with zero drift with uniform grid
+%This is run at the beginning of the test.  Not required.
+function setupOnce(testCase)
+    addpath('../lib/');
+    testCase.TestData.tolerances.test_tol = 1e-9;    
+    testCase.TestData.tolerances.default_csv_precision = '%.10f'; %Should be higher precision than tolerances.test_tol
+end
+
+function zero_drift_uniform_grid_test(testCase)%Simple and small with zero drift with uniform grid
+    tolerances = testCase.TestData.tolerances;
+    
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
     x_min = 0.01;
     x_max = 1;
     I = 5;
-    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-    %dlmwrite(strcat(main_script_tested, '_1_A_output.csv'), full(A), 'precision', default_csv_precision); %Uncomment to save again
-    A_check = dlmread(strcat(main_script_tested, '_1_A_output.csv'));    
+    x = linspace(x_min, x_max, I)';
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+
+    %dlmwrite(strcat(mfilename, '_1_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    A_check = dlmread(strcat(mfilename, '_1_A_output.csv'));    
     
-    assert(norm(A - A_check, Inf) < test_tol, 'A value no longer matches');
+    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
     
     %The following are worth testing for almost every matrix in the test suit.
-    assert(is_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
-    assert(is_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
-    assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
-    assert(is_negative_definite(A), 'Intensity Matrix is not positive definite');
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+    verifyTrue(testCase,is_negative_definite(testCase, A), 'Intensity Matrix is not positive definite');
+end    
     
+function large_zero_drift_uniform_grid_test(testCase)
+    tolerances = testCase.TestData.tolerances;
     
-%% Test 2: Large Matrix, no drift with uniform grid
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
     x_min = 0.01;
     x_max = 1;
     I = 1000000; %million X million matrix, but sparse.
-    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-
+    x = linspace(x_min, x_max, I)';
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
    
     %The following are worth testing for almost every matrix in the test suit.
-    assert(nnz(A) == 2999998, 'Number of non-zero values is wrong'); %Should have about 3million non-zeros.  Tridiagonal.
-    assert(is_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
-    assert(is_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
-    assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
-    %No need to compare to a stored version at this point, more a quetsion of ensuring the speed doesn't collapse
+    verifyTrue(testCase, (nnz(A) == 2999998), 'Number of non-zero values is wrong'); %Should have about 3million non-zeros.  Tridiagonal.
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+end    
+
+function negative_drift_uniform_grid_test(testCase)
+    tolerances = testCase.TestData.tolerances;
     
-%% Test 3: Negative drift with uniform grid
     mu_x = @(x) zeros(numel(x),1);
     sigma_bar = 0.1;
     sigma_2_x = @(x) (sigma_bar*x).^2;
     x_min = 0.01;
     x_max = 1;
     I = 1001;
-    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
+    x = linspace(x_min, x_max, I)';
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+
     
     %To save the file again, can uncomment this.
     %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
-    %dlmwrite(strcat(main_script_tested, '_3_A_output.csv'), [indices_i indices_j values_ij], 'precision', default_csv_precision); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_3_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
     
     %Load and check against the sparse matrix file.
-    A_check = spconvert(dlmread(strcat(main_script_tested, '_3_A_output.csv')));
-    assert(norm(A - A_check, Inf) < test_tol, 'A value no longer matches');
+    A_check = spconvert(dlmread(strcat(mfilename, '_3_A_output.csv')));
+    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
     
     %The following are worth testing for almost every matrix in the test suit.
-    assert(is_stochastic_matrix(A), 'Intensity matrix rows do not sum to 0');
-    assert(is_negative_diagonal(A), 'Intensity Matrix diagonal has positive elements');
-    assert(isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
-%% Test 6: Solving simple value function
-    mu_x = @(x) -0.01 * x;
-    sigma_bar = 0.1;
-    sigma_2_x = @(x) (sigma_bar*x).^2;
-    u_x = @(x) exp(x);
-    rho = 0.05;
-    x_min = 1;
-    x_max = 2;
-    I = 20;
-    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);  
-    u = u_x(x);
-    
-    %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.
-    [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho);
-%    dlmwrite(strcat(main_script_tested, '_6_v_output.csv'), v, 'precision', default_csv_precision); %Uncomment to save again
-    v_check = dlmread(strcat(main_script_tested, '_6_v_output.csv'));    
-    assert(norm(v - v_check, Inf) < test_tol, 'v value no longer matches');
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+end
 
-%% Test 7: Solving simple (bigger) value function
-    mu_x = @(x) -0.01 * x;
-    sigma_bar = 0.1;
-    sigma_2_x = @(x) (sigma_bar*x).^2;
-    u_x = @(x) log(x);
-    rho = 0.05;
-    x_min = .01;
-    x_max = 10;
-    I = 10000;
-    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);  
-    u = u_x(x);
-    
-    %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.
-    tic;
-    [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho);
-    toc;
-%    dlmwrite(strcat(main_script_tested, '_7_v_output.csv'), v, 'precision', default_csv_precision); %Uncomment to save again
-    v_check = dlmread(strcat(main_script_tested, '_7_v_output.csv'));    
-    assert(norm(v - v_check, Inf) < test_tol, 'v value no longer matches');
 
-%% Test 4: Find Stationary Distribution with two methods
-    mu_x = @(x) -0.01 * x;
-    sigma_bar = 0.1;
-    sigma_2_x = @(x) (sigma_bar*x).^2;
-    x_min = 1;
-    x_max = 2;
-    I = 20;
-    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-    f = stationary_distribution_discretized_univariate(A,x);
-    %dlmwrite(strcat(main_script_tested, '_4_f_output.csv'), f, 'precision', default_csv_precision); %Uncomment to save again
-
-    %Check correct
-    f_check = dlmread(strcat(main_script_tested, '_4_f_output.csv'));    
-    assert(norm(f - f_check, Inf) < test_tol, 'f value no longer matches');
-    
-    settings.method = 'LLS';
-    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
-    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
-    
- %% Test 5: Find Stationary Distribution with two methods for a big system
-    mu_x = @(x) -0.01 * x;
-    sigma_bar = 0.1;
-    sigma_2_x = @(x) (sigma_bar*x).^2;
-    x_min = 1;
-    x_max = 2;
-    I = 1000;
-    [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max);
-    settings.method = 'eigenproblem';
-%    settings.max_iterations = 1000;
-    settings.num_basis_vectors = 100;
-   disp('Find one eigenvalue');       
-    tic;
-    f = stationary_distribution_discretized_univariate(A, x, settings);  
-    toc;
-    %dlmwrite(strcat(main_script_tested, '_5_f_output.csv'), f, 'precision', default_csv_precision); %Uncomment to save again
-
-    %Check correct
-    f_check = dlmread(strcat(main_script_tested, '_5_f_output.csv'));    
-    assert(norm(f - f_check, Inf) < test_tol, 'f value no longer matches');
-    
-    settings.method = 'eigenproblem_all';
-%    settings.max_iterations = 1000;
-    settings.num_basis_vectors = 100;
-    disp('All eigenvalues');
-    tic;
-    f = stationary_distribution_discretized_univariate(A, x, settings);  
-    toc;
-    assert(norm(f - f_check, Inf) < test_tol, 'f value no longer matches');
-  
-    clear 'settings';
-    settings.method = 'LLS';
-    settings.max_iterations = 100000;
-    settings.tolerance = 1E-8;
-    settings.display = true;
-    
-    disp('LLS No Preconditioner');
-    tic;
-    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
-    toc;
-    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
-
-    disp('incomplete_LU Preconditioner');
-    settings.preconditioner = 'incomplete_LU';
-    tic;
-    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
-    toc;
-    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
-    disp('incomplete_LU Preconditioner with guess');
-    settings.preconditioner = 'incomplete_LU';
-    settings.initial_guess = linspace(6,.1,I);
-    tic;
-    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
-    toc;
-    
-    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');    
-    
-    disp('Jacobi Preconditioner');
-    clear 'settings';
-    settings.method = 'LLS';
-    settings.max_iterations = 100000;
-    settings.tolerance = 1E-8;
-    settings.display = true;
-    settings.preconditioner = 'jacobi';
-    tic;
-    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
-    toc;
-    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
-    
-    disp('Incomplete Cholesky Preconditioner');
-    settings.preconditioner = 'incomplete_cholesky';
-    tic;
-    f_lls = stationary_distribution_discretized_univariate(A,x, settings);
-    toc;
-    assert(norm(f_lls - f_check, Inf) < lower_test_tol, 'f value no longer matches');
-
-% TODO: Moving to a separate test file.
+% TODO: Should add these checks on equations.
 % 	% Variation 1: construct the A assuming that mu < 0 (i.e., the direction of the finite differences is known a-priori)
 % 	X_var1 = - mu/Delta + sigma_2/(2*Delta_2);
 % 	Y_var1 = mu/Delta - sigma_2/Delta_2;
@@ -222,7 +107,17 @@ clear 'settings';
 % 	A_var2 = sparse(S(2: I+1, 2: I+1));
 % 	
 
-function [A, x] = discretize_univariate_diffusion_uniform_driver(mu_x, sigma_2_x, I, x_min, x_max) %This is a driver for many tests with a uniform grid.
-     x = linspace(x_min, x_max, I)';
-     A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+
+
+%These are utility functions for testing returned matrices.
+function result = is_stochastic_matrix(testCase, A)
+    result = (max(abs(full(sum(A,2)))) < testCase.TestData.tolerances.test_tol);
+end
+
+function result = is_negative_diagonal(testCase, A)
+    result = (max(full(diag(A))) < 0);
+end
+
+function result = is_negative_definite(testCase, A)
+    result =all(eig(full(A)) < testCase.TestData.tolerances.test_tol);
 end

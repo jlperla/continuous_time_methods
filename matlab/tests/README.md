@@ -1,60 +1,25 @@
 # Matlab Tests
-This folder contains the test-suite for the matlab library and examples in the repository.
+This folder contains the test-suite for the matlab library and examples in the repository.  See  https://www.mathworks.com/help/matlab/matlab_prog/write-simple-test-case-with-functions.html for details on Matlab's unit testing framework (which tries to emulate JUnit, etc.)
 
-## How to Add a Test
-* Matlab's unit test framework is based around comments and assertions.  Add as many files in this directory as necessary, as they will all be run by the `run_tests.m`
-  * Matlab seems to finds the tests by checking if the filename `test` in it.  So the naming convention of files should end with `_test.m`
+## Running the test suite
+* To run all the tests, use: `run_tests`
+* To run a particular file, example: `runtests('KFE_discretized_univariate_test')
+* To run a particular function in a particular file, example: `runtests('KFE_discretized_univariate_test/small_LLS_vs_eigenvalue_test')
+* To run the performance test, `run_performance_tests`
 
-* Within a test file then put in an ordered list of the tests with names, e.g. 
-```matlab
-%% Test 1: MY TEST NAME
-% ... code ...
-assert(1==1, 'one does not equal one); %Put in checks as an assertion, this would probably pass
-assert(0==1, 'zero does not equal one'); %Put in checks as an assertion
+## How to Add a Test to a File
+* For an existing file, just add a new function with `_test` at the end.  The unit testing framework will run it as required.
+   * For testing the function, useful to run in isoluation (e.g. `runtests('KFE_discretized_univariate_test/small_LLS_vs_eigenvalue_test')`)
+   * To check something, use `verifyTrue(testCase, THE_CONDITION_TO_VERIFY, 'The string if failed...')` or anything in https://www.mathworks.com/help/matlab/matlab_prog/types-of-qualifications.html
+* When writing the function, keep in mind that `setupOnce(testCase)` runs at the beginning of any test, and `setup(testCase)` runs before every function separately.  (If those functions exist)
 
-%% Test 2: ANOTHER TEST
-%Add in other assertions as part of the test.
-assert(0==1, 'zero does not equal one'); %Put in checks as an assertion
+## How to Add a New Test File
+* Create a file with `_test.m` as the last string of the name.  Matlab's unit testing will then run as part of the test suite.
+* If the function was called `MYTESTFILE_test.m`, then create a function in the file
 ```
-
-## Tips for Writing Test Conditions
-The idea of a test is to comprehensively check that all the results are correct.  Instead of doing this informally during debugging, you should just add the checks into the test file.  At that point, the checks can be run again anytime the code changes.  A few tips:
-* When asserting, do not compare floating points with equality, since they may have small differences due to machine precision.  Instead, use a tolerance:
-```matlab
-tol = 1E-10;
-assert(a == a_old ); %Don't use for floating point a and a_old!
-assert(abs(a - a_old) < tol); %Do it this way instead.
+function tests = MYTESTFILE_test
+    tests = functiontests(localfunctions);
+end
 ```
-* To compare matrices and vectors, use the `norm`.  The `Inf` norm is the maximum, and is the only one supported by sparse matrices/vectors
-```matlab
-assert(norm(b - b_old, Inf) < tol); %If b and b_old are vectors 
-assert(norm(A - A_old, Inf) < tol); %Also works for matrices, and even sparse matrices.
-```
-
-* If the data to check against is too large to write inline in the test, save it as an external file and load it.  For example,
-```matlab
-% Assume that a large `A` matrix which was previuosly generated and needs to be checked against.
-% It could be written to a file (kept in the tests directory) as `test_1_A_output.csv` with:
-% dlmwrite('test_1_A_output.csv', A,'precision','%.10f'); %Saves a csv file with 10 digits precision.
-%Avoid csvread/etc. in matlab since they have limited precision.
-
-%% Test 1: Check A against the old version
-%... calculate new A matrix
-
-%Load the old data to compare against with dlmerad, and put into matrix A_old
-A_old = dlmread('test_1_A_output.csv');
-
-%Check they are close to the same with the infinity norm.
-assert(norm(A - A2, Inf) < tol, 'A has changed compared to the old version')
-```
-* Save files as CSV where possible, rather than storing matlab files.  The reason is to make it easier to examine changes in `git` and to use the same test file for different languages in a `python`, `julia`, or `C++` port of the algorithm.  To do this, maintain a naming  convention for files relative to the test and variable:
-  * Given a test called `MYTEST_test.m`, within the `Test 1` section, and with variable `MYVAR`, call the file: `MYTEST_1_MYVAR_output.csv`
-* For sparse matrices, `dlmwrite` won't work directly, as it only stores dense matrices.  To get around this, you will need to convert the matrix to a sparse format and then convert back when loading. For example, see this roundtrip of saving and storing.
-```matlab
- A = 2.0101 * speye(2); %From some sparse matrix
- [indices_i, indices_j, val_ij] = find(A); %Get indicies and values as vectors
- dlmwrite('sparse_matrix_1_A_output.csv', [indices_i indices_j val_ij],'precision','%.10f');
- 
- A_new = spconvert(dlmread('sparse_matrix_1_A_output.csv')); %Reading is a little easier given this format.
- assert(norm(A - A_new, Inf) < test_tol);
-```
+* Add in a `setupOnce(testCase)` and/or `setup(testCase)` if required.
+* Add in specific functions to test with a descriptive name, and `_test` as the end of the function name.  In general, it is a good idea to split tests up into lots of functions.

@@ -4,8 +4,11 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
    if nargin < 3
        settings.default = true; %Just creates as required.
    end
+   
+   %TODO: Consider adding in a 'dense' option for small matrices.  
+   
    if(~isfield(settings, 'method'))
-        settings.method = 'eigenproblem';
+        settings.method = 'eigenproblem_all';
    end
    if(~isfield(settings, 'normalization'))
        settings.normalization = 'sum'; %The only method supported right now is a direct sum
@@ -18,16 +21,16 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
    
    if(strcmp(settings.method, 'eigenproblem')) %Will use sparsity
         opts.isreal = true;
-        if(isfield(settings, 'num_basis_vectors')) %OTherwise use the default
-           opts.p = settings.num_basis_vectors; %Number of Lanczos basis vectors.
+        if(isfield(settings, 'num_basis_vectors')) %Otherwise use the default
+           opts.p = settings.num_basis_vectors; %Number of Lanczos basis vectors.  Need to increase often
         end
-         if(isfield(settings, 'max_iterations')) %OTherwise use the default
+        if(isfield(settings, 'max_iterations')) %OTherwise use the default
           opts.maxit = settings.max_iterations; %Number of iterations
         end
-        [V,D] = eigs(A' + speye(I),1,'lr', opts);%The eigenvalue with the largest real part should be the unity one
-        if(abs(D - 1.0) > 1E-9) %The 'lr' one is hopefully unity, but maybe not.
+        [V,D, flag] = eigs(A' + speye(I),1,'lr', opts);%The eigenvalue with the largest real part should be the unity one
+        if((flag ~= 0) || (abs(D - 1.0) > 1E-9)) %The 'lr' one is hopefully unity, but maybe not.  Also, the algorithm may not converge.
             if(settings.display)
-                disp('The eigenvalue is not unity.  Try increasing the num_basis_vectors or max_iterations.  Then eigenproblem_all');
+                disp('The eigenvalue is not unity or did not converge.  Try increasing the num_basis_vectors or max_iterations.  Otherwise, consider eigenproblem_all');
             end
             success = false;
             f = NaN;
@@ -68,23 +71,26 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
          else
             tolerance = []; %Empty tells it to use default
          end 
-         if(isfield(settings, 'preconditioner'))
-             if(strcmp(settings.preconditioner,'jacobi'))
-                 preconditioner = diag(diag(A)); %Jacobi preconditioner is easy to calculate.  Helps a little
-             elseif(strcmp(settings.preconditioner,'incomplete_cholesky'))
-                 %Matter if it is negative or positive?
-                   preconditioner =-ichol(-A, struct('type','ict','droptol',1e-3,'diagcomp',1));% ichol(A, struct('diagcomp', 10, 'type','nofill','droptol',1e-1)); %matlab formula exists
-             elseif(strcmp(settings.preconditioner,'incomplete_LU'))
-                 %Matter if it is negative or positive?
-                  [L,U] = ilu(A);
-                  preconditioner = L;
-            else
-                 assert(false, 'Preconditioner type not supported');
-             end
-         else
-            preconditioner = [];
+         if(~isfield(settings, 'preconditioner'))
+             settings.preconditioner = 'incomplete_LU'; %Default is incomplete_LU
          end
-         if(isfield(settings, 'intial_guess'))
+         
+         if(strcmp(settings.preconditioner,'jacobi'))
+             preconditioner = diag(diag(A)); %Jacobi preconditioner is easy to calculate.  Helps a little
+         elseif(strcmp(settings.preconditioner,'incomplete_cholesky'))
+             %Matter if it is negative or positive?  Possible this is doing it incorrectly.
+             preconditioner =-ichol(-A, struct('type','ict','droptol',1e-3,'diagcomp',1));% ichol(A, struct('diagcomp', 10, 'type','nofill','droptol',1e-1)); %matlab formula exists
+         elseif(strcmp(settings.preconditioner,'incomplete_LU'))
+             %Matter if it is negative or positive?
+             [L,U] = ilu(A);
+              preconditioner = L;
+         elseif(strcmp(settings.preconditioner,'none'))
+             preconditioner = [];
+         else
+             assert(false, 'unsupported preconditioner');
+         end
+        
+         if(isfield(settings, 'initial_guess'))
              initial_guess = settings.initial_guess / sum(settings.initial_guess); %It normalized to 1 for simplicity.
          else
              initial_guess = [];
@@ -93,7 +99,7 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
         if(flag==0)
             success = true;
         else
-            if(setttings.display)
+            if(settings.display)
                 disp('Failure to converge: flag and residual');
                 [flag, relres]
             end
