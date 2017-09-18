@@ -187,9 +187,9 @@ In the simple case of an uncontrolled linear stochastic process with no optimal 
 \intertext{Where,}
 y &\equiv \begin{bmatrix}u \\0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{2 I + 1}\\
 X &\equiv \begin{bmatrix}
-	\rho \mathbf{I} - A\\
-	A^T\\
-	\omega
+	\rho \mathbf{I} - A & \mathbf{0}_{I\times I}\\
+	\mathbf{0}_{I\times I} & A^T\\
+	\mathbf{0}_{1\times I} & \omega
 \end{bmatrix}\in \R^{(2 I+1)\times I}\label{eq:KFE-HJBE-least-squares}	
 \end{align}
 If problems occur with negativity of the $f$, then linear constraints could be added.
