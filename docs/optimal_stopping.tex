@@ -42,7 +42,7 @@ For an arbitrary operator $\mathcal{A}$ with associated boundary values, we will
 \paragraph{Linear Operator}
 In the the case of a linear operator $\mathcal{A}$, the resulting discretized finite-difference operator is a matrix $A$.  Denote $v \equiv \set{v(x_i)}_{i=1}^I, u \equiv \set{u(x_i)}_{i=1}^I$, and $S \equiv \set{s(x_i)}_{i=1}^I$, then \cref{eq:HJB-variational-simple-operator} becomes
 \begin{align}
-	0 &= \min\set{\rho v - u - A v,\, v - S }\label{eq:HJB-variational-simple-discrete}
+	0 &= \min\set{\Delta \rho v - \Delta u - A v,\, v - S }\label{eq:HJB-variational-simple-discrete}
 \end{align}
 where $A\in\R^{I\times I}$.  A solution to this problem is a $v$ fulfilling \cref{eq:HJB-variational-simple-discrete}.  Note that the boundary values are already in the $A$ operator and do not need to be discussed separately.
 
@@ -50,9 +50,9 @@ where $A\in\R^{I\times I}$.  A solution to this problem is a $v$ fulfilling \cre
 Following \url{http://www.princeton.edu/~moll/HACTproject/option_simple.pdf} with only minor variations, we note that \cref{eq:HJB-variational-simple-operator} is a linear-complementarity problem. 
 Define the following (given the identity matrix $\mathbf{I}\in\R^{I\times I}$),
 \begin{align}
-	B &\equiv \rho \mathbf{I} - A\label{eq:B}\\
+	B &\equiv \Delta \rho \mathbf{I} - A\label{eq:B}\\
 	z &\equiv v - S\label{eq:z}\\
-	q &\equiv - u + B S\label{eq:q}\\
+	q &\equiv - \Delta u + B S\label{eq:q}\\
 		w &\equiv B z + q\label{eq:w}\\
 	\intertext{Substitute \cref{eq:B,eq:z,eq:q} into \cref{eq:HJB-variational-simple-discrete}}
 	0 &= \min\set{B z + q,\, z }

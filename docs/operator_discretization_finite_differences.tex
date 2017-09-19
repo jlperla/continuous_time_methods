@@ -69,9 +69,9 @@ In general, a reflection for a large $\bar{x}$ and small $\underline{x}$ is the 
 \subsection{Upwind Finite Difference Discretization for $A$ with a Uniform Grid}
 Denote the vector of drifts and variances as $\mu \equiv \set{\mu(x_i)}_{i=1}^I$ and $\sigma^2 \equiv \set{\sigma(x_i)^2}_{i=1}^I$.  For a uniform grid with $\Delta \equiv x_{i+1} - x_i$.  Define the vectors, $X,Y,Z \in \R^I$ such that,
 \begin{align}
-	X &= - \frac{\mu^{-}}{\Delta} + \frac{\sigma^{2}}{2\times \Delta^{2}}\label{eq:X} \\
-	Y &= - \frac{\mu^{+}}{\Delta} + \frac{\mu^{-}}{\Delta} - \frac{\sigma^{2}}{\Delta^{2}}\label{eq:Y} \\
-	Z &= \frac{\mu^{+}}{\Delta} + \frac{\sigma^{2}}{2\times \Delta^{2}}\label{eq:Z}
+	X &= - \mu^{-}+ \frac{\sigma^{2}}{2 \Delta}\label{eq:X} \\
+	Y &= - \mu^{+} + \mu^{-}- \frac{\sigma^{2}}{\Delta}\label{eq:Y} \\
+	Z &= \mu^{+} + \frac{\sigma^{2}}{2 \Delta}\label{eq:Z}
 \end{align}
 
 With these, the matrix $A$ is constructed as.
@@ -86,7 +86,7 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 \end{bmatrix}\in\R^{I\times I}\label{eq:A}\\
 b &\equiv \begin{bmatrix}(1-R_{\underline{x}})X_1\underline{v} \\ 0 \\ \vdots \\ 0 \\  (1-R_{\bar{x}})Z_I\bar{v}\end{bmatrix}^T\in\R^I \label{eq:b}
 \intertext{where,}
-\mathcal{A}v(\set{x_i}) &\approx A v + b
+\mathcal{A}v(\set{x_i}) &\approx \frac{A}{\Delta} v + \frac{b}{\Delta}
 \end{align}
 
 Note that the special cases for the $1$st and $I$th row correspond to the boundary values and are adjusted depending on the type of boundary value. Also, note that the $b$ vector is all zeros if the boundary values are reflective and/or the matched value $\bar{v}$ or $\underline{v}$ is $0$).
@@ -102,44 +102,44 @@ To better understand the construction of $A$ and $b$, look at individual rows of
 
 In the interior ($1 < i < I$), the discretization of \cref{eq:A-generator-univariate-diffusion}
 \begin{align}
-\mathcal{A} v(x_i) &\approx \underbrace{\frac{v_i-v_{i-1}}{\Delta}\mu_i^{-}+ \frac{v_{i+1}-v_i}{\Delta}\mu_i^{+}}_{\text{Upwind Scheme}}  + \frac{\sigma_i^2}{2} \frac{v_{i+1} - 2 v_i + v_{i-1}}{\Delta^2}\label{eq:A-generator-univariate-diffusion-interior}\\
+\Delta \mathcal{A} v(x_i) &\approx \underbrace{\left(v_i-v_{i-1}\right)\mu_i^{-}+ \left(v_{i+1}-v_i\right)\mu_i^{+}}_{\text{Upwind Scheme}}  + \frac{\sigma_i^2}{2} \frac{v_{i+1} - 2 v_i + v_{i-1}}{\Delta}\label{eq:A-generator-univariate-diffusion-interior}\\
 \intertext{The upwind scheme chooses either forward or backward differences, depending on the sign of the drift.  Collecting terms, we see the derivation for the definitions in \cref{eq:X,eq:Y,eq:Z}}
-&= \underbrace{\left(-\frac{\mu_i^{-}}{\Delta} +\frac{\sigma_i^2}{2\Delta^2}\right)}_{\equiv X_i}v_{i-1} + \underbrace{\left(\frac{\mu_i^{-}}{\Delta} - \frac{\mu_i^{+}}{\Delta}-\frac{\sigma_i^2}{\Delta^2}\right)}_{\equiv Y_i}v_i + \underbrace{\left(\frac{\mu_i^{+}}{\Delta} + \frac{\sigma_i^2}{2\Delta^2}\right)}_{\equiv Z_i}v_{i+1}\label{eq:A-collected-interior}
+&= \underbrace{\left(-\mu_i^{-} +\frac{\sigma_i^2}{2\Delta}\right)}_{\equiv X_i}v_{i-1} + \underbrace{\left(\mu_i^{-} - \mu_i^{+}-\frac{\sigma_i^2}{\Delta}\right)}_{\equiv Y_i}v_i + \underbrace{\left(\mu_i^{+} + \frac{\sigma_i^2}{2\Delta}\right)}_{\equiv Z_i}v_{i+1}\label{eq:A-collected-interior}
 \end{align}
 
 
 \paragraph{Boundary Value at $\underline{x}$:}
 As $i =1$, given the ``ghost node'' $x_0$, the discretized operator from \cref{eq:A-collected-interior} is
 \begin{align}
-\mathcal{A} v(x_1) &\approx \left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)v_0 + \left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)v_1 + \left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)v_2\label{eq:A-collected-left}\\
+\Delta \mathcal{A} v(x_1) &\approx \left(-\mu_1^{-} +\frac{\sigma_1^2}{2\Delta}\right)v_0 + \left(\mu_1^{-} - \mu_1^{+}-\frac{\sigma_1^2}{\Delta}\right)v_1 + \left(\mu_1^{+} + \frac{\sigma_1^2}{2\Delta}\right)v_2\label{eq:A-collected-left}\\
 \intertext{In the case of the boundary value $v(\underline{x}) = \underline{v}$, subsitute for $v_0 =  \underline{v}$ to find,}
-&\approx \underbrace{\overbrace{\left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)}^{\equiv X_1}\underline{v}}_{\equiv b_1} +  \underbrace{\left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)}_{\equiv Y_1}v_1 + \underbrace{\left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv Z_1}v_2\\
+&\approx \underbrace{\overbrace{\left(-\mu_1^{-} +\frac{\sigma_1^2}{2\Delta}\right)}^{\equiv X_1}\underline{v}}_{\equiv b_1} +  \underbrace{\left(\mu_1^{-} - \mu_1^{+}-\frac{\sigma_1^2}{\Delta}\right)}_{\equiv Y_1}v_1 + \underbrace{\left(\mu_1^{+} + \frac{\sigma_1^2}{2\Delta}\right)}_{\equiv Z_1}v_2\\
 \intertext{Alternatively, if the boundary value is $v'(\underline{x}) = 0$, take \cref{eq:A-collected-left} and use $v'(\underline{x}) \approx \frac{v_1-v_0}{\Delta} = 0, \implies v_1 = v_0$, so}
-\mathcal{A} v(x_1) &\approx \left(\underbrace{\left(-\frac{\mu_1^{-}}{\Delta} +\frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv X_1} + \underbrace{\left(\frac{\mu_1^{-}}{\Delta} - \frac{\mu_1^{+}}{\Delta}-\frac{\sigma_1^2}{\Delta^2}\right)}_{\equiv Y_1}\right)v_1 + \underbrace{\left(\frac{\mu_1^{+}}{\Delta} + \frac{\sigma_1^2}{2\Delta^2}\right)}_{\equiv Z_1}v_2
+\Delta \mathcal{A} v(x_1) &\approx \left(\underbrace{\left(-\mu_1^{-} +\frac{\sigma_1^2}{2\Delta}\right)}_{\equiv X_1} + \underbrace{\left(\mu_1^{-} - \mu_1^{+}-\frac{\sigma_1^2}{\Delta}\right)}_{\equiv Y_1}\right)v_1 + \underbrace{\left(\mu_1^{+} + \frac{\sigma_1^2}{2\Delta}\right)}_{\equiv Z_1}v_2
 \end{align}
 
 \paragraph{Boundary Value at $\bar{x}$:}
 As $i=I$, given the ``ghost node'' $x_{I+1}$, from \cref{eq:A-collected-interior}
 \begin{align}
-\mathcal{A} v(x_I)&\approx \left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)v_{I-1} + \left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)v_I + \left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)v_{I+1}\\
+\Delta \mathcal{A} v(x_I)&\approx \left(-\mu_i^{-} +\frac{\sigma_I^2}{2\Delta}\right)v_{I-1} + \left(\mu_i^{-} - \mu_i^{+}-\frac{\sigma_I^2}{\Delta}\right)v_I + \left(\mu_i^{+} + \frac{\sigma_I^2}{2\Delta}\right)v_{I+1}\\
 \intertext{For the absorbing barrier, substitute for $v(x_{I+1}) = \bar{v}$,}
-\mathcal{A} v(x_I)&\approx \underbrace{\left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)}_{\equiv X_I} v_{I-1} + \underbrace{\left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)}_{\equiv Y_I} v_I + \underbrace{\overbrace{\left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)}^{\equiv Z_I}\bar{v}}_{\equiv b_I}\\
+\Delta \mathcal{A} v(x_I)&\approx \underbrace{\left(-\mu_i^{-} +\frac{\sigma_I^2}{2\Delta}\right)}_{\equiv X_I} v_{I-1} + \underbrace{\left(\mu_i^{-} - \mu_i^{+}-\frac{\sigma_I^2}{\Delta}\right)}_{\equiv Y_I} v_I + \underbrace{\overbrace{\left(\mu_i^{+} + \frac{\sigma_I^2}{2\Delta}\right)}^{\equiv Z_I}\bar{v}}_{\equiv b_I}\\
 \intertext{For a reflecting barrier, the boundary value $v'(\bar{x}) \approx \frac{v_{I+1}-v_I}{\Delta} = 0, \implies v_{I+1} = v_I$,}
-\mathcal{A} v(x_I)&\approx \underbrace{\left(-\frac{\mu_I^{-}}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right)}_{\equiv X_I} v_{I-1} + \left(\underbrace{\left(\frac{\mu_I^{-}}{\Delta} - \frac{\mu_I^{+}}{\Delta}-\frac{\sigma_I^2}{\Delta^2}\right)}_{\equiv Y_I} + \underbrace{\left(\frac{\mu_I^{+}}{\Delta} + \frac{\sigma_I^2}{2\Delta^2}\right)}_{\equiv Z_I} \right) v_I 
+\Delta \mathcal{A} v(x_I)&\approx \underbrace{\left(-\mu_i^{-} +\frac{\sigma_I^2}{2\Delta}\right)}_{\equiv X_I} v_{I-1} + \left(\underbrace{\left(\mu_i^{-} - \mu_i^{+}-\frac{\sigma_I^2}{\Delta}\right)}_{\equiv Y_I} + \underbrace{\left(\mu_i^{+} + \frac{\sigma_I^2}{2\Delta}\right)}_{\equiv Z_I} \right) v_I 
 \end{align}
 \paragraph{Simple Case with $\mu(x) < 0$ and Reflecting Barrier}
 In the special case of $\mu(\bar{x}) < 0$, the upwind direction is trivial: $\mu^{-} = \mu$ and $\mu^{+} = 0$.  Specializing \cref{eq:X,eq:Y,eq:Z},
 \begin{align}
-	X &= - \frac{\mu}{\Delta} + \frac{\sigma^{2}}{2\times \Delta^{2}}\label{eq:X-backwards} \\
-	Y &= \frac{\mu}{\Delta} - \frac{\sigma^{2}}{\Delta^{2}}\label{eq:Y-backwards} \\
-	Z &= \frac{\sigma^{2}}{2\times \Delta^{2}}\label{eq:Z-backwards}
+	X &= - \mu+ \frac{\sigma^{2}}{2 \Delta}\label{eq:X-backwards} \\
+	Y &= \mu - \frac{\sigma^{2}}{\Delta}\label{eq:Y-backwards} \\
+	Z &= \frac{\sigma^{2}}{2 \Delta}\label{eq:Z-backwards}
 \end{align}
 and the formula for the discretized operator is,
 \begin{align}
-	\mathcal{A} v(x_i)  &= \frac{v_i-v_{i-1}}{\Delta}\mu_i + \frac{\sigma_i^2}{2} \frac{v_{i+1} - 2 v_i + v_{i-1}}{\Delta^2},\quad \text{ for } i = 2,\ldots I-1\\
+	\Delta \mathcal{A} v(x_i)  &= \left(v_i-v_{i-1}\right)\mu_i + \frac{\sigma_i^2}{2} \left(v_{i+1} - 2 v_i + v_{i-1}\right),\quad \text{ for } i = 2,\ldots I-1\\
 	\intertext{With the reflecting barrier at $\underline{x}$ and $\bar{x}$,}
-	\mathcal{A} v(x_1) &= -\frac{\sigma^{2}}{2\Delta^{2}}v_1 + \frac{\sigma^{2}}{2\Delta^{2}} v_2\\
-\mathcal{A} v(x_I)&\approx \left(-\frac{\mu_I}{\Delta} +\frac{\sigma_I^2}{2\Delta^2}\right) v_{I-1} + \left(\frac{\mu_I}{\Delta} - \frac{\sigma_I^2}{2\Delta^2}\right) v_I 
+	\Delta \mathcal{A} v(x_1) &= -\frac{\sigma^{2}}{2\Delta}v_1 + \frac{\sigma^{2}}{2\Delta} v_2\\
+\Delta \mathcal{A} v(x_I)&\approx \left(-\mu_I +\frac{\sigma_I^2}{2\Delta}\right) v_{I-1} + \left(\mu_I - \frac{\sigma_I^2}{2\Delta}\right) v_I 
 \end{align}
 
 \subsection{Stationary Distribution of Reflected Univariate Diffusions}
@@ -175,15 +175,15 @@ In the simple case of an uncontrolled linear stochastic process with no optimal 
 \begin{align}
 	\rho v(x) &= u(x) + \mathcal{A}v(x)\\
 	\intertext{subject to the appropriate boundary conditions.  Discretizing the grid, let $u \equiv \set{u(x_i)}_{i=1}^I\in\R^I$, then the discretized version is,}
-	\rho v &= u + A v\\
+	\Delta \rho v &= \Delta u + A v\\
 	\intertext{Or,}
-	(\rho \mathbf{I} - A) v &= u\label{eq:discretized-linear-HJBE}
+	(\Delta \rho \mathbf{I} - A) v &= \Delta u\label{eq:discretized-linear-HJBE}
 	\intertext{This simple linear system can be solved for $v$.  In principle, the HJBE and the KFE could be solved at the same time (here they are uncoupled, but in principle there could be direct connections in a nonlinear setup) by stacking $q \equiv \begin{bmatrix}v & f\end{bmatrix}^T\in\R^{2 I}$ \cref{eq:discretized-linear-HJBE,eq:KFE-least-squares} as a linear least squares problem,}
 	\min_{q}& \norm{y - X q}^2\\
 \intertext{Where,}
-y &\equiv \begin{bmatrix}u \\0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{2 I + 1}\\
+y &\equiv \begin{bmatrix}\Delta u \\0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{2 I + 1}\\
 X &\equiv \begin{bmatrix}
-	\rho \mathbf{I} - A & \mathbf{0}_{I\times I}\\
+	\rho \Delta  \mathbf{I} - A & \mathbf{0}_{I\times I}\\
 	\mathbf{0}_{I\times I} & A^T\\
 	\mathbf{0}_{1\times I} & \omega
 \end{bmatrix}\in \R^{(2 I+1)\times I}\label{eq:KFE-HJBE-least-squares}	
