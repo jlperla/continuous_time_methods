@@ -155,11 +155,7 @@ Given a model without any birth/death/stopping, let the pdf of the distribution 
 	1 &= \omega \cdot f\label{eq:linear-operator-sum}
 \end{align}
 where $\omega \in \R^I$ is a quadrature weight to ensure it integrates to $1$.  For crude simplicity, could use a vector of $1$s.  Alternatively, $\omega$ could be trapezoidal or simpsons rule weights (depending on if th$x$ grid is uniform).
-\paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} can be written as an eigenvalue problem by adding $f$ to both sides,
-\begin{align}
-	(A^T + \mathbf{I})f &= f
-\end{align}
-Therefore, the stationary distribution can be found as the eigenvector of $A^T + \mathbf{I}$ associated with the unity eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
+\paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} is an eigenvalue problem.  Therefore, the stationary distribution can be found as the eigenvector of $A^T$ associated with the zero eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
 
 \paragraph{As a Linear-Least Squares Problem} Alternatively, consider solving \cref{eq:linear-operator-stationary,eq:linear-operator-sum} as the following linear least squares problem, subject to $f \geq 0$ inequality constraint.
 

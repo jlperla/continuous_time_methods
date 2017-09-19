@@ -27,10 +27,10 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
         if(isfield(settings, 'max_iterations')) %OTherwise use the default
           opts.maxit = settings.max_iterations; %Number of iterations
         end
-        [V,D, flag] = eigs(A' + speye(I),1,'lr', opts);%The eigenvalue with the largest real part should be the unity one
-        if((flag ~= 0) || (abs(D - 1.0) > 1E-9)) %The 'lr' one is hopefully unity, but maybe not.  Also, the algorithm may not converge.
+        [V, D, flag] = eigs(A',1,'sm', opts);%The eigenvalue with the smallest magnitude should be the zero eigenvalue
+        if((flag ~= 0) || (abs(D - 0.0) > 1E-9)) %The 'sm' one is hopefully the zero, but maybe not if there are convergence issues.  Also, the algorithm may simply not converge.
             if(settings.display)
-                disp('The eigenvalue is not unity or did not converge.  Try increasing the num_basis_vectors or max_iterations.  Otherwise, consider eigenproblem_all');
+                disp('The eigenvalue is not zero or did not converge.  Try increasing the num_basis_vectors or max_iterations.  Otherwise, consider eigenproblem_all');
             end
             success = false;
             f = NaN;
@@ -46,18 +46,18 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
          if(isfield(settings, 'max_iterations')) %OTherwise use the default
           opts.maxit = settings.max_iterations; %Number of iterations
         end
-        [V,D] = eigs(A' + speye(I), I, 'lr',opts); %Gets all of the eigenvalues and eigenvectors.  Might be slow, so try `eigenproblem` first.
-        unity_index = find(abs(diag(D) - 1) < 1E-9);       
+        [V,D] = eigs(A', I, 'sm',opts); %Gets all of the eigenvalues and eigenvectors.  Might be slow, so try `eigenproblem` first.
+        zero_index = find(abs(diag(D) - 0) < 1E-9);       
         
-        if(isempty(unity_index))
+        if(isempty(zero_index))
             if(settings.display)
-                disp('Cannot find eigenvalue of 1.');
+                disp('Cannot find eigenvalue of 0.');
             end
             success = false;
             f = NaN;
             return;
         end
-        f = V(:,unity_index) / sum(V(:,unity_index)); %normalize to sum to 1.  Could add other normalizations using the grid 'x' depending on settings.normalization 
+        f = V(:,zero_index) / sum(V(:,zero_index)); %normalize to sum to 1.  Could add other normalizations using the grid 'x' depending on settings.normalization 
         success = true;
         
      elseif(strcmp(settings.method, 'LLS')) %Solves a linear least squares problem adding in the sum constraint
