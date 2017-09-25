@@ -97,7 +97,8 @@ function x_min_is_less_than_zero_test(testCase)    % x_min < 0
     I = 5;
     x = linspace(x_min, x_max, I)';
     A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x)); 
-
+    
+    %TODO: construct A_check
     %dlmwrite(strcat(mfilename, '_4_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
     A_check = dlmread(strcat(mfilename, '_4_A_output.csv'));
     
@@ -221,6 +222,7 @@ function monotonically_decreasing_mu_test(testCase)    % mu is monotonically dec
     x = linspace(x_min, x_max, I)';
     A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
 
+    %TODO: construct A_check
     %dlmwrite(strcat(mfilename, '_8_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
     A_check = dlmread(strcat(mfilename, '_8_A_output.csv'));
     
@@ -246,6 +248,7 @@ function concave_mu_test(testCase)     % mu is concave in x with mu(x_min)<0, mu
     x = linspace(x_min, x_max, I)';
     A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
 
+    %TODO: construct A_check
     %dlmwrite(strcat(mfilename, '_9_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
     A_check = dlmread(strcat(mfilename, '_9_A_output.csv'));
     
