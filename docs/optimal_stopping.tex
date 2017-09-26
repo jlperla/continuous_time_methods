@@ -40,7 +40,7 @@ for all $x$ (adding an appropriate boundary conditions $x$).  This is a variatio
 \subsection{Discretized Problem}
 For an arbitrary operator $\mathcal{A}$ with associated boundary values, we will find a solution to \cref{eq:HJB-variational-simple-operator} by discretizing the $\mathcal{A}$ operator on a grid $\set{x_i}_{i=1}^I$ with $x_1 = \underline{x}$ and $x_I = \bar{x}$ subject to appropriate boundary values on $\underline{x}$ and $\bar{x}$.  See \url{operator_discretization_finite_differences.pdf} notes for details on the discretization of operators.
 \paragraph{Linear Operator}
-In the the case of a linear operator $\mathcal{A}$, the resulting discretized finite-difference operator is a matrix $A$.  Denote $v \equiv \set{v(x_i)}_{i=1}^I, u \equiv \set{u(x_i)}_{i=1}^I$, and $S \equiv \set{s(x_i)}_{i=1}^I$, then \cref{eq:HJB-variational-simple-operator} becomes
+In the case of a linear operator $\mathcal{A}$, the resulting discretized finite-difference operator is a matrix $A$.  Denote $v \equiv \set{v(x_i)}_{i=1}^I, u \equiv \set{u(x_i)}_{i=1}^I$, and $S \equiv \set{s(x_i)}_{i=1}^I$, then \cref{eq:HJB-variational-simple-operator} becomes
 \begin{align}
 	0 &= \min\set{\Delta \rho v - \Delta u - A v,\, v - S }\label{eq:HJB-variational-simple-discrete}
 \end{align}
