@@ -294,8 +294,7 @@ function zero_sigma_somewhere_test(testCase)
     
     %The following are worth testing for almost every matrix in the test suit.
     verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
-    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements'); % Not eligible in this case
-    %verifyTrue(testCase,(A(1, 1) == 0 && A(2, 2) < 0 && A(3, 3) == 0 && A(4, 4) < 0 && A(5, 5) == 0), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements'); 
     verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
     verifyTrue(testCase,is_negative_definite(testCase, A), 'Intensity Matrix is not positive definite');
 end
