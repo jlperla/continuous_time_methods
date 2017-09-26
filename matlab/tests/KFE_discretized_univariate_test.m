@@ -89,7 +89,7 @@ function medium_preconditioner_test(testCase) %tests of the various precondition
     tic;
     f = stationary_distribution_discretized_univariate(A, x, settings);
     toc;
-    dlmwrite(strcat(mfilename, '_3_f_output.csv'), f, 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_3_f_output.csv'), f, 'precision', tolerances.default_csv_precision); %Uncomment to save again
     f_check = dlmread(strcat(mfilename, '_3_f_output.csv'));    
     verifyTrue(testCase,norm(f - f_check, Inf) < tolerances.test_tol, 'f value no longer matches');
 
