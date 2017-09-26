@@ -1,6 +1,8 @@
 %Takes the discretized operator A, the grid x, and finds the stationary distribution f.
 function [v, f, success] = simple_joint_HJBE_stationary_distribution_univariate(A, x, u, rho, settings)
     I = length(x);
+    Delta = x(2) - x(1);
+    A = A ./ Delta;
     if nargin < 5
        settings.default = true; %Just creates as required.
     end

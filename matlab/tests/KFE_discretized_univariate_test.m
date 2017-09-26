@@ -23,7 +23,7 @@ function [A, x] = baseline_negative_drift_discretization(I, testCase) %Used by o
     x_min = 1;
     x_max = 2;
     x = linspace(x_min, x_max, I)';
-    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
 end
 
 function small_LLS_vs_eigenvalue_test(testCase) %Simple baseline check.

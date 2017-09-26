@@ -45,7 +45,10 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	sigma_2 = sigma_2_x(x); %
     
     %Discretize the operator
-    A = discretize_univariate_diffusion(x, mu, sigma_2);
+    
+    Delta = x(2) - x(1);
+    Delta_A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
+    A = Delta_A ./ Delta;
 
 	%% Setup and solve the problem as a linear-complementarity problem (LCP)
 	%Given the above construction for u, A, and S, we now have the discretized version

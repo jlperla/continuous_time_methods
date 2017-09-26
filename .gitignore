@@ -5,3 +5,5 @@
 *.aux
 *.log
 *.synctex(busy)
+*.m~
+*.m~

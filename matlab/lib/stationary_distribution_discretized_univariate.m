@@ -1,6 +1,8 @@
 %Takes the discretized operator A, the grid x, and finds the stationary distribution f.
 function [f, success] = stationary_distribution_discretized_univariate(A, x, settings)
    I = length(x);
+   Delta = x(2) - x(1);
+   A = A ./ Delta;
    if nargin < 3
        settings.default = true; %Just creates as required.
    end

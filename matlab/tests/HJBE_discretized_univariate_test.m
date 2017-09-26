@@ -26,7 +26,7 @@ function simple_value_function_test(testCase)
     x_max = 2;
     I = 20;
     x = linspace(x_min, x_max, I)';
-    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
     u = u_x(x);
     
     %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.
@@ -72,7 +72,7 @@ function joint_value_function_KFE_test(testCase)
     x_max = 2;
     I = 1000;
     x = linspace(x_min, x_max, I)';
-    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));   
     u = u_x(x);
     
     %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.

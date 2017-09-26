@@ -2,7 +2,9 @@
 function [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho, settings)
    I = length(x);
    assert(I == size(A,1) && I == size(A,2)); %Make sure sizes match
-
+   Delta = x(2) - x(1);
+   A = A ./ Delta;
+   
    if nargin < 5
        settings.default = true; %Just creates as required.
    end
