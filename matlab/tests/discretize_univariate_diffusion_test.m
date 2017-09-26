@@ -258,29 +258,18 @@ function concave_mu_test(testCase)     % mu is concave in x with mu(x_min)<0, mu
     verifyTrue(testCase,is_negative_definite(testCase, A), 'Intensity Matrix is not positive definite');
 end
 
-function zero_sigma_everywhere_test(testCase)
-    tolerances = testCase.TestData.tolerances;
-    
-    I = 5;
-    mu_x = @(x) zeros(numel(x),1);
-    sigma_2_x = @(x) zeros(numel(x),1);
-    x_min = 0.01;
-    x_max = 1;
-    x = linspace(x_min, x_max, I)';
-    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
-
-    %dlmwrite(strcat(mfilename, '_10_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
-    A_check = dlmread(strcat(mfilename, '_10_A_output.csv'));
-    
-    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
-    
-    %The following are worth testing for almost every matrix in the test suit.
-    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
-    %verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements'); % Not eligible in this case
-    verifyTrue(testCase,(A(1, 1) == 0 && A(2, 2) == 0 && A(3, 3) == 0 && A(4, 4) == 0 && A(5, 5) == 0), 'Intensity Matrix diagonal has positive elements');
-    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
-    verifyTrue(testCase,is_negative_definite(testCase, A), 'Intensity Matrix is not positive definite');
-end
+%Removed.  Should be checking that this throws errors, but not sure how to do it with matlab tests.
+% function zero_sigma_everywhere_test(testCase)
+%     I = 5;
+%     %mu_x = @(x) zeros(numel(x),1);
+%     mu_x = @(x) -.01 * ones(numel(x),1);
+%     sigma_2_x = @(x) zeros(numel(x),1);
+%     x_min = 0.01;
+%     x_max = 1;
+%     x = linspace(x_min, x_max, I)';
+%     %A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+%     %testCase.assertFail(@() discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x))); ???? Not working, 
+% end
 
 function zero_sigma_somewhere_test(testCase)
     tolerances = testCase.TestData.tolerances;
