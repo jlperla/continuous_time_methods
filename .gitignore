@@ -5,10 +5,4 @@
 *.aux
 *.log
 *.synctex(busy)
-<<<<<<< HEAD
-*.m~
-*.m~
-=======
-*.m~
->>>>>>> bac4899683d02cb78258f69e3f5bb9591cd01283
 *.m~
