@@ -3,7 +3,6 @@ function [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho, setting
    I = length(x);
    assert(I == size(A,1) && I == size(A,2)); %Make sure sizes match
    Delta = x(2) - x(1);
-   A = A ./ Delta;
    
    if nargin < 5
        settings.default = true; %Just creates as required.
@@ -18,7 +17,7 @@ function [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho, setting
     if(strcmp(settings.method, 'sparse_system'))
         %Solve as a simple sparse system of equations.
         %More advanced solvers could use preconditioners, etc.
-        v = (rho * speye(I) - A)\u;
+        v = (Delta * rho * speye(I) - A)\(Delta * u);
         success = true;
     end
  

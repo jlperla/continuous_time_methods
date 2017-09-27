@@ -12,6 +12,7 @@ end
 function setupOnce(testCase)
     addpath('../lib/');
     testCase.TestData.tolerances.test_tol = 1e-9;    
+    testCase.TestData.tolerances.lower_test_tol = 1e-8;    %For huge matrices, the inf norm can get a little different.
     testCase.TestData.tolerances.default_csv_precision = '%.10f'; %Should be higher precision than tolerances.test_tol
 end
 
@@ -55,7 +56,7 @@ function bigger_value_function_test(testCase)
     [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho);
     %dlmwrite(strcat(mfilename, '_2_v_output.csv'), v, 'precision', tolerances.default_csv_precision); %Uncomment to save again
     v_check = dlmread(strcat(mfilename, '_2_v_output.csv'));    
-    verifyTrue(testCase,norm(v - v_check, Inf) < tolerances.test_tol, 'v value no longer matches');
+    verifyTrue(testCase,norm(v - v_check, Inf) < tolerances.lower_test_tol, 'v value no longer matches');
     verifyTrue(testCase, success==true, 'unsuccesful');
 end
 % 
