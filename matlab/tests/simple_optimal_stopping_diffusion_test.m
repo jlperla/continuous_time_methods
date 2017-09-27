@@ -451,7 +451,7 @@ function default_parameters_test(testCase)
     
     %Create uniform grid and determine step sizes.
     results = simple_optimal_stopping_diffusion(parameters, settings);    
-    dlmwrite(strcat(mfilename,'_22_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %To save results again
+    %dlmwrite(strcat(mfilename,'_22_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %To save results again
     v_old = dlmread(strcat(mfilename,'_22_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.    
     verifyTrue(testCase, max(abs(results.v - v_old)) < tolerances.test_tol, 'Value of solution no longer matches default value');        
 end
