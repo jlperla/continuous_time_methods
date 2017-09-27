@@ -47,8 +47,8 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     %Discretize the operator
     
     Delta = x(2) - x(1);
-    Delta_A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
-    A = Delta_A ./ Delta;
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
+    
 
 	%% Setup and solve the problem as a linear-complementarity problem (LCP)
 	%Given the above construction for u, A, and S, we now have the discretized version
@@ -67,8 +67,8 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     %Choose based on the method type.
     if strcmp(settings.method, 'Yuval')
         %Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
-        B = rho*speye(I) - A; %(6)
-        q = -u + B*S; %(8)
+        B = Delta * rho * speye(I) - A; %(6)
+        q = (-u * Delta + B*S) / Delta; %(8)
         
         z_iv = zeros(I,1); %initial guess.
 
