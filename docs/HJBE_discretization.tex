@@ -13,7 +13,7 @@
  
  \section{Neoclassical Growth}
  This solves the simple deterministic neoclassical growth model.
- \subsection{Value Function}
+ \subsection{Value Function with Capital Reversibility}
  
  Take a standard neoclassical growth model with capital $k$, consumption $c$, production $f(k)$, utility $u(c)$, depreciation rate $\delta$, and discount rate $\rho$.\footnote{
  This builds on \url{http://www.princeton.edu/~moll/HACTproject/HACT_Additional_Codes.pdf} Section 2.2, with code in \url{http://www.princeton.edu/~moll/HACTproject/HJB_NGM_implicit.m}}
@@ -28,9 +28,25 @@ The law of motion for capital in this setup is,
 	c &= \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:c-neoclassical-growth}
 	\intertext{And,}
 	u(c) &= \frac{\left(v'(k)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma}\label{eq:u-c-neoclassical-growth}
-	\intertext{If \cref{eq:c-neoclassical-growth,eq:u-c-neoclassical-growth} was substituted back into \cref{eq:HJBE-neoclassical-growth}, we would have a nonlinear ODE in just $k$}
+	\intertext{If \cref{eq:c-neoclassical-growth,eq:u-c-neoclassical-growth} was substituted back into \cref{eq:HJBE-neoclassical-growth}, we would have a nonlinear ODE in just $k$.  Define the following, which will be important in the finite difference scheme}
+	\mu(k) &\equiv f(k) - \delta - c\label{eq:mu-neoclassical-growth}
+	\intertext{Then with \cref{eq:c-neoclassical-growth} this can be defined as a function of the $v(\cdot)$ function,}
+	\mu(k;v) &\equiv f(k) - \delta - \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:mu-v-neoclassical-growth}
+	\intertext{Then with \cref{eq:HJBE-neoclassical-growth,eq:mu-v-neoclassical-growth,eq:u-c-neoclassical-growth}}
+	\rho v(k) &= \frac{\left(v'(k)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma} + \mu(k;v) v'(k)\label{eq:HJBE-neoclassical-growth-mu}
 \end{align}
- 
+The HJBE \cref{eq:HJBE-neoclassical-growth-mu} is a nonlinear ODE in $v(k)$.
+\subsection{Finite Differences and Discretization}
+In order to solve this problem, we will need to use the appropriate ``upwind'' direction for the finite differences given the sign of the drift in \cref{eq:mu-v-neoclassical-growth}.  There are two basic approaches: (1) fix the nonlinear $v'(k)$ function so that the operator becomes linear, solve it as a sparse linear system, and then iterate on the $v(k)$ solution.; and (2) solve it directly as a nonlinear system of equations.
+
+Define a uniform grid $k \in \set{k_1, \ldots k_I}$ for some small $k_1 > 0$ and a large $k_I$ with $\Delta \equiv k_i - k_{i-1}$.  Further define $v_i \equiv v(k_i)$.  To discretize the derivative at $k_i$, consider both backwards and forwards differences,
+\begin{align}
+	v'_F(k_i) &\approx \frac{v_{i+1} - v_i}{\Delta}\\
+	v'_B(k_i) &\approx \frac{v_i - v_{i-1}}{\Delta}
+\end{align}
+
+\subsection{Iterating on a Linear System of Equations}
+\subsection{Nonlinear System of Equations}
 
 \bibliography{etk-references}
 
