@@ -9,7 +9,7 @@
 \author{Jesse Perla\\UBC}
 \date{\today}
 \maketitle
- Here, we expand on details for how to discretize HJBE with a control of the drift.\footnote{See \url{operator_discretization_finite_differences.pdf} for more details on the discretization of a linear diffusion operator with finite-differences, and general notation (with equation numbers in that document prefaced by \textit{FD}).}  In particular, this will start by solving the neoclassical growth model with a deterministic and then stochastic TFP.
+ Here, we expand on details for how to discretize HJBE with a control of the drift.\footnote{See \url{operator_discretization_finite_differences.pdf} for more details on the discretization of a linear diffusion operator with finite-differences, and general notation (with equation numbers in that document prefaced by \textit{FD}).}  In particular, this will start by solving the neoclassical growth model first with a deterministic and then a stochastic TFP.
  
  \section{Neoclassical Growth}
  This solves the simple deterministic neoclassical growth model.
@@ -39,13 +39,25 @@ The HJBE \cref{eq:HJBE-neoclassical-growth-mu} is a nonlinear ODE in $v(k)$.
 \subsection{Finite Differences and Discretization}
 In order to solve this problem, we will need to use the appropriate ``upwind'' direction for the finite differences given the sign of the drift in \cref{eq:mu-v-neoclassical-growth}.  There are two basic approaches: (1) fix the nonlinear $v'(k)$ function so that the operator becomes linear, solve it as a sparse linear system, and then iterate on the $v(k)$ solution.; and (2) solve it directly as a nonlinear system of equations.
 
-Define a uniform grid $k \in \set{k_1, \ldots k_I}$ for some small $k_1 > 0$ and a large $k_I$ with $\Delta \equiv k_i - k_{i-1}$.  Further define $v_i \equiv v(k_i)$.  To discretize the derivative at $k_i$, consider both backwards and forwards differences,
+Define a uniform grid with $I$ points  $\set{k_i}_{i=1}^I$,  for some small $k_1 > 0$ and large $k_I$ with $\Delta \equiv k_i - k_{i-1}$ for all $i$.  Further define $v_i \equiv v(k_i)$.  To discretize the derivative at $k_i$, consider both forwards and backwards differences,
 \begin{align}
 	v'_F(k_i) &\approx \frac{v_{i+1} - v_i}{\Delta}\\
 	v'_B(k_i) &\approx \frac{v_i - v_{i-1}}{\Delta}
 \end{align}
 
+Following the ``upwind scheme'', we will use the forwards approximation whenever there is a positive drift above the steady state level of capital $k^*$, and the backwards approximation when below $k^*$. 
+
 \subsection{Iterating on a Linear System of Equations}
+We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
+\begin{align}
+	\frac{v_i^{n+1}-v_i^{n}}{\Delta} + \rho v_i^{n+1} = \\	
+\end{align}
+Define the notation $\mu^{-} \equiv \min\set{\mu,0}$ and $\mu^{+} \equiv \max\set{\mu,0}$. \\
+
+
+Define the matrices $X, Y, Z \in \R $ such that 
+
+
 \subsection{Nonlinear System of Equations}
 
 \bibliography{etk-references}
