@@ -28,16 +28,20 @@ The law of motion for capital in this setup is,
 	c &= \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:c-neoclassical-growth}
 	\intertext{And,}
 	u(c) &= \frac{\left(v'(k)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma}\label{eq:u-c-neoclassical-growth}
-	\intertext{There also exists a steady state level of capital, $k^*$, given by}
-	{\frac{}{\rho + \delta}}^{\frac{1}{1-\gamma}}
-	\intertext{If \cref{eq:c-neoclassical-growth,eq:u-c-neoclassical-growth} was substituted back into \cref{eq:HJBE-neoclassical-growth}, we would have a nonlinear ODE in just $k$.  Define the following, which will be important in the finite difference scheme}
-	\mu(k) &\equiv f(k) - \delta - c\label{eq:mu-neoclassical-growth}
+\intertext{If \cref{eq:c-neoclassical-growth,eq:u-c-neoclassical-growth} was substituted back into \cref{eq:HJBE-neoclassical-growth}, we would have a nonlinear ODE in just $k$.  Define the following, which will be important in the finite difference scheme}
+	\mu(k) &\equiv f(k) - \delta k - c\label{eq:mu-neoclassical-growth}
 	\intertext{Then with \cref{eq:c-neoclassical-growth} this can be defined as a function of the $v(\cdot)$ function,}
-	\mu(k;v) &\equiv f(k) - \delta - \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:mu-v-neoclassical-growth}
+	\mu(k;v) &\equiv f(k) - \delta k - \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:mu-v-neoclassical-growth}
 	\intertext{Then with \cref{eq:HJBE-neoclassical-growth,eq:mu-v-neoclassical-growth,eq:u-c-neoclassical-growth}}
 	\rho v(k) &= \frac{\left(v'(k)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma} + \mu(k;v) v'(k)\label{eq:HJBE-neoclassical-growth-mu}
 \end{align}
 The HJBE \cref{eq:HJBE-neoclassical-growth-mu} is a nonlinear ODE in $v(k)$.
+
+\paragraph{Steady State}  The goal is for the finite-difference scheme to find the steady-state on its own.  However, in this example we have an equation to verify the solution:
+\begin{align}
+k^* &= \left(\frac{\alpha A}{\rho + \delta}\right)^{\frac{1}{1-\alpha}}\label{eq:steady-state-k}\\
+c^* &= A \left(k^*\right)^{\alpha} - \delta  \left(k^*\right)^{\alpha}\label{eq:steady-state-c}
+\end{align}
 \subsection{Finite Differences and Discretization}
 In order to solve this problem, we will need to use the appropriate ``upwind'' direction for the finite differences given the sign of the drift in \cref{eq:mu-v-neoclassical-growth}.  There are two basic approaches: (1) fix the nonlinear $v'(k)$ function so that the operator becomes linear, solve it as a sparse linear system, and then iterate on the $v(k)$ solution.; and (2) solve it directly as a nonlinear system of equations.
 
@@ -58,13 +62,13 @@ Following the ``upwind scheme'', we will use the forwards approximation whenever
 \subsection{Iterating on a Linear System of Equations}
 We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
 \begin{align}
-	\frac{v_i^{n+1}-v_i^{n}}{\Delta} + \rho v_i^{n+1} = u(c_i^n) + (v_i^{n+1})^{'}  [f(k_i) - \delta k_i - c_i^n\label{eq:fd-approx-capital}]\	
+	\frac{v_i^{n+1}-v_i^{n}}{\Delta} + \rho v_i^{n+1} = u(c_i^n) + (v_i^{n+1})^{'}  \underbrace{\left[f(k_i) - \delta k_i - c_i^n\right]}_{\equiv \mu_i}\label{eq:fd-approx-capital}
 \end{align}
 
 Using both the forwards and backwards difference approximations \cref{eq:forward-diff} and \cref{eq:backward-diff}, calculate savings,
 \begin{align}
-\mu_{i,F} = f(k_i) - \delta - \left(v_F'(k_i) \right)^{-\frac{1}{\gamma}}\\
-\mu_{i,B} = f(k_i) - \delta - \left(v_B'(k_i) \right)^{-\frac{1}{\gamma}}\\
+\mu_{i,F} = f(k_i) - \delta k - \left(v_F'(k_i) \right)^{-\frac{1}{\gamma}}\\
+\mu_{i,B} = f(k_i) - \delta k - \left(v_B'(k_i) \right)^{-\frac{1}{\gamma}}\\
 \end{align}
 
 When referring to a variable $\mu$, define the notation $\mu^{-} \equiv \min\set{\mu,0}$ and $\mu^{+} \equiv \max\set{\mu,0}$. Then the approximation of the derivative is 
