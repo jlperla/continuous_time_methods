@@ -67,8 +67,8 @@ We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for $n = 0, 1,
 
 Using both the forwards and backwards difference approximations \cref{eq:forward-diff} and \cref{eq:backward-diff}, calculate savings,
 \begin{align}
-\mu_{i,F} = f(k_i) - \delta k - \left(v_F'(k_i) \right)^{-\frac{1}{\gamma}}\\
-\mu_{i,B} = f(k_i) - \delta k - \left(v_B'(k_i) \right)^{-\frac{1}{\gamma}}\\
+\mu_{i,F} = f(k_i) - \delta k_i - \left(v_F'(k_i) \right)^{-\frac{1}{\gamma}}\\
+\mu_{i,B} = f(k_i) - \delta k_i - \left(v_B'(k_i) \right)^{-\frac{1}{\gamma}}\\
 \end{align}
 
 When referring to a variable $\mu$, define the notation $\mu^{-} \equiv \min\set{\mu,0}$ and $\mu^{+} \equiv \max\set{\mu,0}$. Then the approximation of the derivative is 
