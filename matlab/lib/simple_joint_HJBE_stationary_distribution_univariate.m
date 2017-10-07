@@ -40,8 +40,8 @@ function [v, f, success] = simple_joint_HJBE_stationary_distribution_univariate(
      
      
     %Create the joint system
-    y = sparse([u; sparse(I,1);1]); %(42)
-    X = [(Delta * rho * speye(I) - A) Delta * sparse(I,I); Delta * sparse(I,I) A';Delta * sparse(1,I) Delta * ones(1,I)] ./ Delta; %(43).  Only supporting simple sum.
+    y = sparse([Delta * u; sparse(I,1);1]); %(41)
+    X = [(Delta * rho * speye(I) - A) sparse(I,I); sparse(I,I) A'; sparse(1,I) ones(1,I)]; %(42).  Only supporting simple sum.
 
     if(settings.sparse == true)
          if(strcmp(settings.preconditioner,'jacobi'))

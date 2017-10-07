@@ -68,7 +68,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     if strcmp(settings.method, 'Yuval')
         %Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
         B = Delta * rho * speye(I) - A; %(6)
-        q = (-u * Delta + B*S) / Delta; %(8)
+        q = -u * Delta + B*S; %(8)
         
         z_iv = zeros(I,1); %initial guess.
 
