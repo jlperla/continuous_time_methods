@@ -151,22 +151,22 @@ Given a model without any birth/death/stopping, let the pdf of the distribution 
 	0 &= \mathcal{A}^*f(x)\\
 	1 &= \int_0^1 f(x) \diff x
 	\intertext{If the linear operator $\mathcal{A}$ is discretized as a matrix $A$, then it can be shown that the discretized $\mathcal{A}^*$ is the transpose $A^T$.  To find the discretized PDF of the distribution, $f \in \R^I$, solve}
-	0 &= A^T f\label{eq:linear-operator-stationary}\\
+	0 &= \frac{A^T}{\Delta} f\label{eq:linear-operator-stationary}\\
 	1 &= \omega \cdot f\label{eq:linear-operator-sum}
 \end{align}
 where $\omega \in \R^I$ is a quadrature weight to ensure it integrates to $1$.  For crude simplicity, could use a vector of $1$s.  Alternatively, $\omega$ could be trapezoidal or simpsons rule weights (depending on if th$x$ grid is uniform).
-\paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} is an eigenvalue problem.  Therefore, the stationary distribution can be found as the eigenvector of $A^T$ associated with the zero eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
+\paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} is an eigenvalue problem.  Therefore, we can muliply by $\Delta$ and then the stationary distribution can be found as the eigenvector of $A^T$ associated with the zero eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
 
-\paragraph{As a Linear-Least Squares Problem} Alternatively, consider solving \cref{eq:linear-operator-stationary,eq:linear-operator-sum} as the following linear least squares problem, subject to $f \geq 0$ inequality constraint.
+\paragraph{As a Linear-Least Squares Problem} Alternatively, consider solving \cref{eq:linear-operator-stationary,eq:linear-operator-sum},after multiplying everything by $\Delta$, as the following linear least squares problem, subject to $f \geq 0$ inequality constraint.
 
 \begin{align}
 	\min_f& \norm{y - X f}^2\\
 	\st & f \geq 0\\
 	\intertext{Where,}
-	y &\equiv \begin{bmatrix}0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{I + 1}\\
+	y &\equiv \begin{bmatrix}0 \\ \vdots \\ 0 \\ \Delta\end{bmatrix}\in\R^{I + 1}\\
 	X &\equiv \begin{bmatrix}
 		A^T\\
-		\omega
+		\Delta \omega
 		\end{bmatrix}\in \R^{(I+1)\times I}\label{eq:KFE-least-squares}
 \end{align}
 
@@ -181,11 +181,11 @@ In the simple case of an uncontrolled linear stochastic process with no optimal 
 	\intertext{This simple linear system can be solved for $v$.  In principle, the HJBE and the KFE could be solved at the same time (here they are uncoupled, but in principle there could be direct connections in a nonlinear setup) by stacking $q \equiv \begin{bmatrix}v & f\end{bmatrix}^T\in\R^{2 I}$ \cref{eq:discretized-linear-HJBE,eq:KFE-least-squares} as a linear least squares problem,}
 	\min_{q}& \norm{y - X q}^2\\
 \intertext{Where,}
-y &\equiv \begin{bmatrix}\Delta u \\0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{2 I + 1}\\
+y &\equiv \begin{bmatrix}\Delta u \\0 \\ \vdots \\ 0 \\ \Delta 1\end{bmatrix}\in\R^{2 I + 1}\\
 X &\equiv \begin{bmatrix}
 	\rho \Delta  \mathbf{I} - A & \mathbf{0}_{I\times I}\\
 	\mathbf{0}_{I\times I} & A^T\\
-	\mathbf{0}_{1\times I} & \omega
+	\mathbf{0}_{1\times I} & \Delta \omega
 \end{bmatrix}\in \R^{(2 I+1)\times 2 I}\label{eq:KFE-HJBE-least-squares}	
 \end{align}
 If problems occur with negativity of the $f$, then linear constraints could be added.

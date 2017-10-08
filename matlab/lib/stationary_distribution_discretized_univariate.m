@@ -1,8 +1,6 @@
 %Takes the discretized operator A, the grid x, and finds the stationary distribution f.
 function [f, success] = stationary_distribution_discretized_univariate(A, x, settings)
    I = length(x);
-   Delta = x(2) - x(1);
-   A = A ./ Delta;
    if nargin < 3
        settings.default = true; %Just creates as required.
    end
@@ -97,7 +95,9 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
          else
              initial_guess = [];
          end
-        [f,flag,relres,iter] = lsqr([A';ones(1,I)], sparse([zeros(I,1);1]), tolerance, max_iterations, preconditioner, [], initial_guess); %Linear least squares.  Note tolerance changes with I
+        
+        Delta = x(2) - x(1);         
+        [f,flag,relres,iter] = lsqr([A';Delta * ones(1,I)], sparse([zeros(I,1);Delta * 1]), tolerance, max_iterations, preconditioner, [], initial_guess); %Linear least squares.  Note tolerance changes with I
         if(flag==0)
             success = true;
         else
