@@ -13,6 +13,7 @@ function setupOnce(testCase)
     addpath('../lib/');
     
     testCase.TestData.tolerances.test_tol = 1e-9;    
+    testCase.TestData.tolerances.test_tol_less = 1e-3;    
     testCase.TestData.tolerances.default_csv_precision = '%.10f'; %Should be higher precision than test_tol    
 end
 %To add in cleanup code, add here
@@ -82,7 +83,7 @@ function baseline_HACT_test(testCase)
 
     %Check all values
     v_old = dlmread(strcat(mfilename,'_1_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
-    verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol, 'Value of solution no longer matches HACT example');
+    verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
 end
 
 % function convex_u_x_test(testCase)
