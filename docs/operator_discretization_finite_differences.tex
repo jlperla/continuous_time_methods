@@ -154,7 +154,7 @@ Given a model without any birth/death/stopping, let the pdf of the distribution 
 	0 &= \frac{A^T}{\Delta} f\label{eq:linear-operator-stationary}\\
 	1 &= \omega \cdot f\label{eq:linear-operator-sum}
 \end{align}
-where $\omega \in \R^I$ is a quadrature weight to ensure it integrates to $1$.  For crude simplicity, could use a vector of $1$s.  Alternatively, $\omega$ could be trapezoidal or simpsons rule weights (depending on if the $x$ grid is uniform).
+where $\omega \in \R^I$ is a quadrature weight to ensure it integrates to $1$.  For crude simplicity, could use a vector of $1$s.  Alternatively, $\omega$ could be trapezoidal or simpsons rule weights (depending on if th$x$ grid is uniform).
 \paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} is an eigenvalue problem.  Therefore, we can multiply by $\Delta$ (which does not change problem for a $0$ eigenvalue) and then the stationary distribution can be found as the eigenvector of $A^T$ associated with the zero eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
 
 \paragraph{As a Linear System} Alternatively, define the following, after multiplying \cref{eq:linear-operator-stationary,eq:linear-operator-sum} by $\Delta$ and stacking,
