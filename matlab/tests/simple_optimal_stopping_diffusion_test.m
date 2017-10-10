@@ -41,7 +41,8 @@ function setup(testCase)
     settings.I = 1000; %number of grid variables for x
     settings.display = false; %Optional
     settings.error_tolerance = 10^(-6); %Optional    
-    settings.method = 'Yuval'; %Optional, defaults to `Yuval'
+    %settings.method = 'Yuval'; %Optional, defaults to `Yuval'
+    settings.method = 'knitro'; %Optional, defaults to `Knitro'
     
     %These will be overwritten as required.
     testCase.TestData.baseline_parameters = parameters;
@@ -114,7 +115,7 @@ end
 %     v_old = dlmread(strcat(mfilename,'_2_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
 %     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol, 'Value of solution no longer matches negative u(x) for small x example');
 % end
-% 
+
 % 
 % function u_x_is_negative_for_small_x_test(testCase)
 %     [settings, ~, tolerances] = unpack_setup(testCase);  
