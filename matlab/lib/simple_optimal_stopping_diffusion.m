@@ -49,10 +49,9 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	mu = mu_x(x); %vector of constant drifts 
 	sigma_2 = sigma_2_x(x); %
     
-    %Discretize the operator
-    
+    %Discretize the operator    
     Delta = x(2) - x(1);
-    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
+    A = discretize_univariate_diffusion(x, mu, sigma_2, false); %Note that this is not checking for absorbing states!
     
 
 	%% Setup and solve the problem as a linear-complementarity problem (LCP)
@@ -90,7 +89,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
                 disp('Failure to converge under Yuval')
             end
             results.success = false;
-            exit;
+            return;
         end
 
         %% Convert from z back to v and plot results
@@ -108,7 +107,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
                 disp('Failure to converge with lemke method')
             end
             results.success = false;
-            exit;
+            return;
         end
 
         %% Convert from z back to v and plot results
@@ -126,7 +125,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
                 disp('Failure to converge with lemke method')
             end
             results.success = false;
-            exit;
+            return;
         end
 
         %% Convert from z back to v and plot results
@@ -194,7 +193,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
                 disp('Failure to converge under Knitro')
             end
             results.success = false;
-            exit;
+            return;
         end
         
         %% Convert from z back to v and plot results

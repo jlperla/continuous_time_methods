@@ -18,7 +18,7 @@ function x = LCP(M,q,l,u,x0,display)
 %   a binary flag 'display' which controls the display of iteration data.
 %
 %   Parameters:
-%   tol       -   Termination criterion. Exit when 0.5*phi(x)'*phi(x) < tol.
+%   tol       -   Termination criterion. return when 0.5*phi(x)'*phi(x) < tol.
 %   mu        -   Initial value of Levenberg-Marquardt mu coefficient.
 %   mu_step   -   Coefficient by which mu is multiplied / divided.
 %   mu_min    -   Value below which mu is set to zero (pure Gauss-Newton).
