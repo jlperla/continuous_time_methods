@@ -52,7 +52,7 @@ function medium_LLS_vs_eigenvalue_test(testCase) %Larger system using default op
     tolerances = testCase.TestData.tolerances;
     
     I = 1000; %Larger grid
-    settings.display = true;    
+    settings.print_level = 1;    
     settings.method = 'eigenproblem'; %Will try to only find the appropriate eigenvector, which can be faster.
     settings.num_basis_vectors = 100; %In general, need to tweak this to use the default eigenvector approach for large I
     [A, x] = baseline_negative_drift_discretization(I, testCase);
@@ -81,7 +81,7 @@ function medium_preconditioner_test(testCase) %tests of the various precondition
     tolerances = testCase.TestData.tolerances;
     
     I = 1000; %Larger grid
-    settings.display = true;    
+    settings.print_level = 1;    
     [A, x] = baseline_negative_drift_discretization(I, testCase);
 
     %Use the eigenproblem approach as a comparison
@@ -97,7 +97,7 @@ function medium_preconditioner_test(testCase) %tests of the various precondition
     settings.method = 'LLS'; %Now using the LLS method with the default pre-conditioner    
     settings.max_iterations = 50000; %Only really need this many to test the no preconditioner version.
     settings.tolerance = 1E-8;
-    settings.display = true;
+    settings.print_level = 1;
 
     %Use LLS with no preconditioners
     tic;

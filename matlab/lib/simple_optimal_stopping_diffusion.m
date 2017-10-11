@@ -85,7 +85,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
         LCP_error = max(abs(error));
         if(LCP_error > settings.error_tolerance)
-            if(settings.display) 
+            if(settings.print_level > 0) 
                 disp('Failure to converge under Yuval')
             end
             results.success = false;
@@ -103,7 +103,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
         LCP_error = max(abs(error));
         if(LCP_error > settings.error_tolerance)
-            if(settings.display) 
+            if(settings.print_level>0) 
                 disp('Failure to converge with lemke method')
             end
             results.success = false;
@@ -121,7 +121,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
         LCP_error = max(abs(error));
         if((LCP_error > settings.error_tolerance) || (retcode(1) ~=1 ))
-            if(settings.display) 
+            if(settings.print_level>0) 
                 disp('Failure to converge with lemke method')
             end
             results.success = false;
@@ -189,7 +189,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
             
         LCP_error = max(abs(error));
         if(LCP_error > settings.error_tolerance)
-            if(settings.display) 
+            if(settings.print_level>0) 
                 disp('Failure to converge under Knitro')
             end
             results.success = false;

@@ -10,8 +10,8 @@ function [v, f, success] = simple_joint_HJBE_stationary_distribution_univariate(
        settings.normalization = 'sum'; %The only method supported right now is a direct sum
        %Otherwise, could consider better quadrature methods using x such as trapezoidal or simpsons rule.
     end
-    if ~isfield(settings, 'display')
-       settings.display = false; %Tolerance
+    if ~isfield(settings, 'print_level')
+       settings.print_level = false;
     end
 
      if(isfield(settings, 'max_iterations')) %OTherwise use the default
@@ -63,7 +63,7 @@ function [v, f, success] = simple_joint_HJBE_stationary_distribution_univariate(
             v = val(1:I);
             f = val(I+1:end);
         else
-            if(settings.display)
+            if(settings.print_level>0)
                 disp('Failure to converge: flag and residual');
                 [flag, relres]
             end

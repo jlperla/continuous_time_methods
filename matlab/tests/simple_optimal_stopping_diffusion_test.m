@@ -39,7 +39,7 @@ function setup(testCase)
     parameters.mu_x = @(x) mu_bar * x; %i.e. mu(x) = mu_bar * x
     parameters.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = sigma_bar x
     settings.I = 1000; %number of grid variables for x
-    settings.display = false; %Optional
+    settings.print_level = 0; %Optional
     settings.error_tolerance = 10^(-6); %Optional    
     
     %These will be overwritten as required.

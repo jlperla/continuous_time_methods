@@ -10,8 +10,8 @@ function [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho, setting
    if(~isfield(settings, 'method'))
         settings.method = 'sparse_system';
    end
-    if ~isfield(settings, 'display')
-       settings.display = false; %Tolerance
+    if ~isfield(settings, 'print_level')
+       settings.print_level = 0; 
     end
    
     if(strcmp(settings.method, 'sparse_system'))
