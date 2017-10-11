@@ -41,8 +41,6 @@ function setup(testCase)
     settings.I = 1000; %number of grid variables for x
     settings.display = false; %Optional
     settings.error_tolerance = 10^(-6); %Optional    
-    %settings.method = 'Yuval'; %Optional, defaults to `Yuval'
-    settings.method = 'knitro'; %Optional, defaults to `Knitro'
     
     %These will be overwritten as required.
     testCase.TestData.baseline_parameters = parameters;
@@ -69,7 +67,7 @@ function baseline_HACT_test(testCase)
     gamma = 0.5; %u(x) = x^gamma
 
     %Relevant functions for u(x), S(x), mu(x) and sigma(x) for a general diffusion dx_t = mu(x) dt + sigma(x) dW_t, for W_t brownian motion
-    parameters.rho = 0.05; %Discount rate
+    parameters.rho = 0.05; %Discount ra te
     parameters.x_min = 0.1; %Reflecting barrier at x_min.  i.e. v'(x_min) = 0 as a boundary value
     parameters.x_max = 1.0; %Reflecting barrier at x_max.  i.e. v'(x_max) = 0 as a boundary value
 
@@ -85,6 +83,57 @@ function baseline_HACT_test(testCase)
     %Check all values
     v_old = dlmread(strcat(mfilename,'_1_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
+end
+
+function LCP_methods_test(testCase)
+    [settings, ~, tolerances] = unpack_setup(testCase);  
+    
+    settings.I = 500;
+    %Rewriting parameters entirely.
+    mu_bar = -0.01; %Drift.  Sign changes the upwind direction.
+    sigma_bar = 0.01; %Variance
+    S_bar = 10.0; %the value of stopping
+    gamma = 0.5; %u(x) = x^gamma
+
+    %Relevant functions for u(x), S(x), mu(x) and sigma(x) for a general diffusion dx_t = mu(x) dt + sigma(x) dW_t, for W_t brownian motion
+    parameters.rho = 0.05; %Discount ra te
+    parameters.x_min = 0.1; %Reflecting barrier at x_min.  i.e. v'(x_min) = 0 as a boundary value
+    parameters.x_max = 1.0; %Reflecting barrier at x_max.  i.e. v'(x_max) = 0 as a boundary value
+
+    parameters.u_x = @(x) x.^gamma; %u(x) = x^gamma in this example
+    parameters.S_x = @(x) S_bar.*ones(numel(x),1); %S(x) = S_bar in this example
+    parameters.mu_x = @(x) mu_bar * ones(numel(x),1); %i.e. mu(x) = mu_bar
+    parameters.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = sigma_bar x
+    
+    %Create uniform grid and determine step sizes.
+    settings.method = 'yuval';
+    tic;
+    disp('yuval method');
+    results = simple_optimal_stopping_diffusion(parameters, settings);
+    v = results.v;
+    v_old = v; %Other methods seeing if the same
+    toc;
+    %Check all values
+ %   v_old = dlmread(strcat(mfilename,'_1_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
+    verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
+    
+    %Try the next method.
+    settings.method = 'lemke';  %This is a pretty poor method when I gets large, but seems robust.
+    tic;
+    disp('Lemke method');    
+    results = simple_optimal_stopping_diffusion(parameters, settings);
+    v = results.v;
+    toc;   
+    verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
+    
+    %Try the next method.
+    settings.method = 'LCPSolve';  %This is a pretty poor method when I gets large.
+    tic;
+    disp('LCPSolve method');    
+    results = simple_optimal_stopping_diffusion(parameters, settings);
+    v = results.v;
+    toc;   
+    verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');    
 end
 
 % function convex_u_x_test(testCase)

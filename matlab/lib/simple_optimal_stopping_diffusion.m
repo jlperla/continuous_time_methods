@@ -20,10 +20,15 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     if ~isfield(settings, 'error_tolerance')
         settings.error_tolerance = 10^(-6);
     end
+    if ~isfield(settings, 'pivot_tolerance')
+        settings.pivot_tolerance = 1e-8;
+    end    
     if ~isfield(settings, 'method')
-        settings.method = 'Yuval'; %Default is the Yuval LCP downloaded from matlabcentral
+        settings.method = 'yuval'; %Default is the Yuval LCP downloaded from matlabcentral
     end
-    
+    if ~isfield(settings, 'basis_guess')
+        settings.basis_guess = zeros(settings.I,1); %Guess that it never binds?
+    end
 	%%  Unpack parameters and settings
 	rho = p.rho; %Discount rate
 	u_x = p.u_x; %utility function
@@ -65,7 +70,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
 	%% Solve the LCP version of the model
     %Choose based on the method type.
-    if strcmp(settings.method, 'Yuval')
+    if strcmp(settings.method, 'yuval')
         %Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
         B = Delta * rho * speye(I) - A; %(6)
         q = -u * Delta + B*S; %(8)
@@ -90,6 +95,44 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
         %% Convert from z back to v and plot results
         v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
+    elseif strcmp(settings.method, 'lemke')
+        B = Delta * rho * speye(I) - A; %(6)
+        q = -u * Delta + B*S; %(8)
+
+        z = lemke(B, q, settings.basis_guess,1e-5, settings.pivot_tolerance);
+        error = z.*(B*z + q); %(11)
+
+        LCP_error = max(abs(error));
+        if(LCP_error > settings.error_tolerance)
+            if(settings.display) 
+                disp('Failure to converge with lemke method')
+            end
+            results.success = false;
+            exit;
+        end
+
+        %% Convert from z back to v and plot results
+        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
+    elseif strcmp(settings.method, 'LCPSolve')
+        B = Delta * rho * speye(I) - A; %(6)
+        q = -u * Delta + B*S; %(8)
+
+        [w,z,retcode] = LCPSolve(B,q,settings.pivot_tolerance);
+        error = z.*(B*z + q); %(11)
+
+        LCP_error = max(abs(error));
+        if((LCP_error > settings.error_tolerance) || (retcode(1) ~=1 ))
+            if(settings.display) 
+                disp('Failure to converge with lemke method')
+            end
+            results.success = false;
+            exit;
+        end
+
+        %% Convert from z back to v and plot results
+        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
+       
+       
     elseif strcmp(settings.method, 'knitro')
         % Convert the LCP problem to a QCP problem
         % min z' * (B*z - q)
