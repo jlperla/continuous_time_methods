@@ -1,4 +1,4 @@
-function [z,err] = lemke(M,q,z0,zer_tol, piv_tol, maxiter)
+function [z,err,iter] = lemke(M,q,z0,zer_tol, piv_tol, maxiter)
 % syntax: [z,err] = lemke(M,q,z0)
 % LEMKE    Solves linear complementarity problems (LCPs).
 % An LCP solves

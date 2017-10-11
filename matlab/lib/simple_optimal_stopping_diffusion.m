@@ -18,7 +18,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
         settings.print_level = 0;
     end
     if ~isfield(settings, 'error_tolerance')
-        settings.error_tolerance = 10^(-6);
+        settings.error_tolerance = 1e-12;
     end
     if ~isfield(settings, 'pivot_tolerance')
         settings.pivot_tolerance = 1e-8;
@@ -66,72 +66,24 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
 	u = u_x(x);
 	S = S_x(x);
+    B = Delta * rho * speye(I) - A; %(6)
+    q = -u * Delta + B*S; %(8)
 
-	%% Solve the LCP version of the model
+	%% Solve the LCP version of the model 
     %Choose based on the method type.
-    if strcmp(settings.method, 'yuval')
-        %Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
-        B = Delta * rho * speye(I) - A; %(6)
-        q = -u * Delta + B*S; %(8)
-        
-        z_iv = zeros(I,1); %initial guess.
-
+    if strcmp(settings.method, 'yuval')%Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
         %Box bounds, z_L <= z <= z_U.  In this formulation this means 0 <= z_i < infinity
         z_L = zeros(I,1); %(12)
         z_U = inf(I,1);
+        settings.error_tolerance = settings.error_tolerance/1000; %Fundamentally different order of magnitude than the others.
+        [z, iter, converged] = LCP(B, q, z_L, z_U, settings);
+        error = z.*(B*z + q); %(11)
         
-        z = LCP(B, q, z_L, z_U, z_iv, (settings.print_level > 0));
+     elseif strcmp(settings.method, 'lemke')
+        [z,err,iter] = lemke(B, q, settings.basis_guess,settings.error_tolerance, settings.pivot_tolerance);
         error = z.*(B*z + q); %(11)
+        converged = (err == 0);
 
-        LCP_error = max(abs(error));
-        if(LCP_error > settings.error_tolerance)
-            if(settings.print_level > 0) 
-                disp('Failure to converge under Yuval')
-            end
-            results.success = false;
-            return;
-        end
-
-        %% Convert from z back to v and plot results
-        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
-    elseif strcmp(settings.method, 'lemke')
-        B = Delta * rho * speye(I) - A; %(6)
-        q = -u * Delta + B*S; %(8)
-
-        z = lemke(B, q, settings.basis_guess,1e-5, settings.pivot_tolerance);
-        error = z.*(B*z + q); %(11)
-
-        LCP_error = max(abs(error));
-        if(LCP_error > settings.error_tolerance)
-            if(settings.print_level>0) 
-                disp('Failure to converge with lemke method')
-            end
-            results.success = false;
-            return;
-        end
-
-        %% Convert from z back to v and plot results
-        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
-    elseif strcmp(settings.method, 'LCPSolve')
-        B = Delta * rho * speye(I) - A; %(6)
-        q = -u * Delta + B*S; %(8)
-
-        [w,z,retcode] = LCPSolve(B,q,settings.pivot_tolerance);
-        error = z.*(B*z + q); %(11)
-
-        LCP_error = max(abs(error));
-        if((LCP_error > settings.error_tolerance) || (retcode(1) ~=1 ))
-            if(settings.print_level>0) 
-                disp('Failure to converge with lemke method')
-            end
-            results.success = false;
-            return;
-        end
-
-        %% Convert from z back to v and plot results
-        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
-       
-       
     elseif strcmp(settings.method, 'knitro')
         % Convert the LCP problem to a QCP problem
         % min z' * (B*z - q)
@@ -206,6 +158,9 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     end
 	
 	%% Package Results
+    %% Convert from z back to v
+    v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
+    
     %Discretization results
 	results.x = x;
     results.A = A;
@@ -213,6 +168,8 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     
     %Solution
     results.v = v;
-	results.success = true;
-	results.LCP_error = LCP_error;
+	results.converged = converged;
+    results.iterations = iter;
+	results.LCP_error = max(abs(error));
+    results.LCP_L2_error = norm(error,2);
 end	
