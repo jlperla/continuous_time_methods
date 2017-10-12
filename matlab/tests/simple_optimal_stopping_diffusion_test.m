@@ -140,7 +140,7 @@ function LCP_methods_test(testCase)
     %Try the next method.
     settings.method = 'knitro'; 
     tic;
-    disp('Knitro method');    
+    disp('Knitro LCP method');  
     results = simple_optimal_stopping_diffusion(parameters, settings);
     v = results.v;
     toc;   
@@ -490,6 +490,33 @@ function negative_mu_and_zero_sigma_test(testCase)
     v_old = dlmread(strcat(mfilename,'_13_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
     plot(results.x, results.v, results.x, parameters.S_x(results.x));    
     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol, 'Value of solution no longer matches negative u(x) for small x example');
+end
+
+
+function knitro_test(testCase)
+    [settings, ~, tolerances] = unpack_setup(testCase);     
+    settings.I = 500;
+    mu_bar = -0.01; %Drift.  Sign changes the upwind direction.
+    sigma_bar = 0.01; %Variance
+    S_bar = 10.0; %the value of stopping
+    gamma = 0.5; %us(x) = x^gamma
+
+    parameters.rho = 0.05; %Discount ra te
+    parameters.x_min = 0.1; %Reflecting barrier at x_min.  i.e. v'(x_min) = 0 as a boundary value
+    parameters.x_max = 1.0; %Reflecting barrier at x_max.  i.e. v'(x_max) = 0 as a boundary value
+
+    parameters.u_x = @(x) x.^gamma; %u(x) = x^gamma in this example
+    parameters.S_x = @(x) S_bar.*ones(numel(x),1); %S(x) = S_bar in this example
+    parameters.mu_x = @(x) mu_bar * ones(numel(x),1); %i.e. mu(x) = mu_bar
+    parameters.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = sigma_bar x
+    
+    settings.method = 'knitro';
+    tic;
+    results = simple_optimal_stopping_diffusion(parameters, settings);
+    toc;
+    v = results.v;
+    plot(results.x, results.v, results.x, parameters.S_x(results.x));    
+    verifyTrue(testCase,results.converged);
 end
 
 %This test runs the test case with only the default parameters in settings.
