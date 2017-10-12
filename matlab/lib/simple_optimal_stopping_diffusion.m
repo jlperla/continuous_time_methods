@@ -141,7 +141,7 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
             results.success = false;
             return;
         else
-            converged = 1;
+            converged = true;
             iter = NaN;
         end
         

@@ -196,12 +196,14 @@ function u_x_is_negative_for_small_x_test(testCase)
     parameters.mu_x = @(x) mu_bar * ones(numel(x),1); %i.e. mu(x) = mu_bar
     parameters.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = sigma_bar x
     
+    %settings.method = 'knitro'; 
     %Create uniform grid and determine step sizes.
     results = simple_optimal_stopping_diffusion(parameters, settings);
     v = results.v;
     
     %dlmwrite(strcat(mfilename, '_3_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %Uncomment to save again
     %Check all values
+    %a comparable value is saved as 'mfilename_33_v_output.csv'
     v_old = dlmread(strcat(mfilename,'_3_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol, 'Value of solution no longer matches negative u(x) for small x example');
 end
@@ -224,13 +226,14 @@ function negative_S_x_test(testCase)
     parameters.S_x = @(x) S_bar.*ones(numel(x),1); %S(x) = S_bar in this example
     parameters.mu_x = @(x) mu_bar * ones(numel(x),1); %i.e. mu(x) = mu_bar
     parameters.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = sigma_bar x
-    
+    %settings.method = 'knitro'; 
     %Create uniform grid and determine step sizes.
     results = simple_optimal_stopping_diffusion(parameters, settings);
     v = results.v;
     
     %dlmwrite(strcat(mfilename, '_4_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %Uncomment to save again
     %Check all values
+    %a comparable value is saved as 'mfilename_44_v_output.csv'
     v_old = dlmread(strcat(mfilename,'_4_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
     verifyTrue(testCase, results.converged);
     %plot(results.x, results.v, results.x, parameters.S_x(results.x))
