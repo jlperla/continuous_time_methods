@@ -6,17 +6,19 @@
 %Subject to reflecting barrier at x_min and x_max
 
 %Pass in the vector of the grid x, and the vectors of mu and sigma_2 at the nodes, and returns a sparse discretized operator.
-function A = discretize_univariate_diffusion(x, mu, sigma_2)
-
+function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_states)
+    if nargin < 4
+        check_absorbing_states = true;
+    end
 	I = length(x); %number of grid variables for x
 
 	%Check if the grid is uniform
 	tol = 1E-10; %Tolerance for seeing if the grid is uniform
 	Delta_p = diff(x); %(1) Find distances between grid points.
-    
-    assert(sigma_2(1) > 0 || mu(1) >= 0, 'Cannot jointly have both sigma = 0 or mu < 0 at x_min, or an absorbing state');
-    assert(sigma_2(end) > 0 || mu(end) <= 0, 'Cannot jointly have both sigma = 0 or mu > 0 at x_max, or an absorbing state');
-    
+    if(check_absorbing_states) %In some circumstances, such as in optimal stopping problems, we can ignore these issues.
+        assert(sigma_2(1) > 0 || mu(1) >= 0, 'Cannot jointly have both sigma = 0 or mu < 0 at x_min, or an absorbing state');
+        assert(sigma_2(end) > 0 || mu(end) <= 0, 'Cannot jointly have both sigma = 0 or mu > 0 at x_max, or an absorbing state');
+    end
 	if(abs(min(Delta_p) - max(Delta_p)) < tol) %i.e. a uniform grid within tolerance
 		Delta = x(2)-x(1); % (1)
 		% Delta_2 = Delta^2; %Just squaring the Delta for the second order terms in the finite differences.

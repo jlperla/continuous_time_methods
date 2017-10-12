@@ -87,7 +87,7 @@ function joint_value_function_KFE_test(testCase)
     verifyTrue(testCase, success==true, 'unsuccesful');
     
     %Now find the KFE with linear least squares and the default preconditioner
-    settings.display = true;
+    settings.print_level = 1;
     %settings.method = 'LLS';
     %settings.method = 'eigenproblem_all';
     disp('Solving stationary distribution on its own');

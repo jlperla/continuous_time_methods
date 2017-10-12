@@ -18,12 +18,17 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
         settings.print_level = 0;
     end
     if ~isfield(settings, 'error_tolerance')
-        settings.error_tolerance = 10^(-6);
+        settings.error_tolerance = 1e-12;
     end
+    if ~isfield(settings, 'pivot_tolerance')
+        settings.pivot_tolerance = 1e-8;
+    end    
     if ~isfield(settings, 'method')
-        settings.method = 'Yuval'; %Default is the Yuval LCP downloaded from matlabcentral
+        settings.method = 'yuval'; %Default is the Yuval LCP downloaded from matlabcentral
     end
-    
+    if ~isfield(settings, 'basis_guess')
+        settings.basis_guess = zeros(settings.I,1); %Guess that it never binds?
+    end
 	%%  Unpack parameters and settings
 	rho = p.rho; %Discount rate
 	u_x = p.u_x; %utility function
@@ -44,10 +49,9 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 	mu = mu_x(x); %vector of constant drifts 
 	sigma_2 = sigma_2_x(x); %
     
-    %Discretize the operator
-    
+    %Discretize the operator    
     Delta = x(2) - x(1);
-    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
+    A = discretize_univariate_diffusion(x, mu, sigma_2, false); %Note that this is not checking for absorbing states!
     
 
 	%% Setup and solve the problem as a linear-complementarity problem (LCP)
@@ -62,34 +66,24 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
 	u = u_x(x);
 	S = S_x(x);
+    B = Delta * rho * speye(I) - A; %(6)
+    q = -u * Delta + B*S; %(8)
 
-	%% Solve the LCP version of the model
+	%% Solve the LCP version of the model 
     %Choose based on the method type.
-    if strcmp(settings.method, 'Yuval')
-        %Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
-        B = Delta * rho * speye(I) - A; %(6)
-        q = -u * Delta + B*S; %(8)
-        
-        z_iv = zeros(I,1); %initial guess.
-
+    if strcmp(settings.method, 'yuval')%Uses Yuval Tassa's Newton-based LCP solver, download from http://www.mathworks.com/matlabcentral/fileexchange/20952
         %Box bounds, z_L <= z <= z_U.  In this formulation this means 0 <= z_i < infinity
         z_L = zeros(I,1); %(12)
         z_U = inf(I,1);
-        
-        z = LCP(B, q, z_L, z_U, z_iv, (settings.print_level > 0));
+        settings.error_tolerance = settings.error_tolerance/1000; %Fundamentally different order of magnitude than the others.
+        [z, iter, converged] = LCP(B, q, z_L, z_U, settings);
         error = z.*(B*z + q); %(11)
+        
+     elseif strcmp(settings.method, 'lemke')
+        [z,err,iter] = lemke(B, q, settings.basis_guess,settings.error_tolerance, settings.pivot_tolerance);
+        error = z.*(B*z + q); %(11)
+        converged = (err == 0);
 
-        LCP_error = max(abs(error));
-        if(LCP_error > settings.error_tolerance)
-            if(settings.display) 
-                disp('Failure to converge under Yuval')
-            end
-            results.success = false;
-            exit;
-        end
-
-        %% Convert from z back to v and plot results
-        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
     elseif strcmp(settings.method, 'knitro')
         % Convert the LCP problem to a QCP problem
         % min z' * (B*z - q)
@@ -141,11 +135,11 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
             
         LCP_error = max(abs(error));
         if(LCP_error > settings.error_tolerance)
-            if(settings.display) 
+            if(settings.print_level>0) 
                 disp('Failure to converge under Knitro')
             end
             results.success = false;
-            exit;
+            return;
         end
         
         %% Convert from z back to v and plot results
@@ -158,6 +152,9 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     end
 	
 	%% Package Results
+    %% Convert from z back to v
+    v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
+    
     %Discretization results
 	results.x = x;
     results.A = A;
@@ -165,6 +162,8 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
     
     %Solution
     results.v = v;
-	results.success = true;
-	results.LCP_error = LCP_error;
+	results.converged = converged;
+    results.iterations = iter;
+	results.LCP_error = max(abs(error));
+    results.LCP_L2_error = norm(error,2);
 end	

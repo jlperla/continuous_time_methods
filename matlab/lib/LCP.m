@@ -1,4 +1,4 @@
-function x = LCP(M,q,l,u,x0,display)
+function [x, iter, converged] = LCP(M,q,l,u,settings)
 %LCP Solve the Linear Complementarity Problem.
 %
 % USAGE
@@ -18,7 +18,7 @@ function x = LCP(M,q,l,u,x0,display)
 %   a binary flag 'display' which controls the display of iteration data.
 %
 %   Parameters:
-%   tol       -   Termination criterion. Exit when 0.5*phi(x)'*phi(x) < tol.
+%   tol       -   Termination criterion. return when 0.5*phi(x)'*phi(x) < tol.
 %   mu        -   Initial value of Levenberg-Marquardt mu coefficient.
 %   mu_step   -   Coefficient by which mu is multiplied / divided.
 %   mu_min    -   Value below which mu is set to zero (pure Gauss-Newton).
@@ -43,12 +43,12 @@ function x = LCP(M,q,l,u,x0,display)
 %   Copyright (c) 2008, Yuval Tassa
 %   tassa at alice dot huji dot ac dot il
 
-tol            = 1.0e-12;
-mu             = 1e-3;
-mu_step        = 5;
-mu_min         = 1e-5;
-max_iter       = 20;
-b_tol          = 1e-6;
+%tol            = 1.0e-12;
+% mu             = 1e-3;
+% mu_step        = 5;
+% mu_min         = 1e-5;
+% max_iter       = 20;
+% b_tol          = 1e-6;
 
 n              = size(M,1);
 
@@ -56,17 +56,47 @@ if nargin < 3 || isempty(l)
    l = zeros(n,1);
    if nargin < 4 || isempty(u)
       u = inf(n,1);
-      if nargin < 5 || isempty(x0)
-         x0 = min(max(ones(n,1),l),u);
-         if nargin < 6
-            display   = false;
-         end
-      end
    end
 end
 
+if nargin < 5
+    settings.print_level = 0;
+end
+
+if ~isfield(settings, 'x_iv')
+    settings.x_iv = min(max(zeros(n,1),l),u); %Changed to 0 as default, rather than 1.
+end
+if ~isfield(settings, 'error_tolerance')
+    settings.error_tolerance = 1.0e-12;
+end
+if ~isfield(settings, 'lm_mu')
+    settings.lm_mu = 1e-3;
+end
+if ~isfield(settings, 'lm_mu_min')
+    settings.lm_mu_min = 1e-5;
+end
+if ~isfield(settings, 'lm_mu_step')
+    settings.lm_mu_step = 5;
+end
+if ~isfield(settings, 'max_iter')
+    settings.max_iter = 20;
+end
+if ~isfield(settings, 'b_tol')
+    settings.b_tol = 1e-6;
+end
+
+%Unpack all settings and parameters
+display = (settings.print_level > 0);
+tol = settings.error_tolerance;
+mu = settings.lm_mu;
+mu_min = settings.lm_mu_min;
+mu_step = settings.lm_mu_step;
+max_iter = settings.max_iter;
+b_tol = settings.b_tol;
+
+%Main algorithm
 lu             = [l u];
-x              = x0;
+x              = settings.x_iv;
 
 [psi,phi,J]    = FB(x,q,M,l,u);
 new_x          = true;
@@ -112,6 +142,7 @@ for iter = 1:max_iter
 end
 warning on MATLAB:nearlySingularMatrix
 x = min(max(x,l),u);
+converged = (iter < max_iter);
 
 function [psi,phi,J] = FB(x,q,M,l,u)
 n     = length(x);
