@@ -136,6 +136,16 @@ function LCP_methods_test(testCase)
     toc;   
     fprintf('L2 Error = %d\n',results.LCP_L2_error);
     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
+    
+    %Try the next method.
+    settings.method = 'knitro'; 
+    tic;
+    disp('Knitro method');    
+    results = simple_optimal_stopping_diffusion(parameters, settings);
+    v = results.v;
+    toc;   
+    fprintf('L2 Error = %d\n',results.LCP_L2_error);
+    verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
  end
 
 function convex_u_x_test(testCase)

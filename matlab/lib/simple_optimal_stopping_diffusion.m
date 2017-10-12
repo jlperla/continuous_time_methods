@@ -140,12 +140,11 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
             end
             results.success = false;
             return;
+        else
+            converged = 1;
+            iter = NaN;
         end
         
-        %% Convert from z back to v and plot results
-        v = z + S; %(7) calculate value function, unravelling the "z = v - S" change of variables
-%         results = NaN;
-%         assert(false, 'Knitro in progress');
     else
         results = NaN;
         assert(false, 'Unsupported method to solve the LCP');        
