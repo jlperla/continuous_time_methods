@@ -99,7 +99,8 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
         % Uses Knitro Tomlab solver
         B = Delta * rho * speye(I) - A; %(6)
         q = -u * Delta + B*S; %(8)
-        D = (Delta * rho * speye(I) - A);  % D is used for linear constraints, D == B
+        
+        c = zeros(I, 1);
         
         z_iv = zeros(I,1); %initial guess.
 
@@ -117,33 +118,26 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
         mpec(:, 3) = linspace(1, I, I)';
         mpec = sparse(mpec);
         
-        Prob = qcpAssign(B, q, D, b_L, b_U, z_L, z_U, z_iv, mpec, Name);
         
-        D = Prob.A;
+        Prob = lcpAssign(c, z_L, z_U, z_iv, B, b_L, b_U, mpec, Name);
         
-        %D_orig = Prob.orgProb.A;  % Original matrix D
+        B = Prob.A;
         
-        % Enable some crossover iterations, to "polish" the solution a bit in
-        % case KNITRO chooses an interior point algorithm:
-
-        Prob.KNITRO.options.MAXCROSSIT = 100;
+        Prob.KNITRO.options.ALG = 3;
+        
         Prob.PriLevOpt = 0;   % No output return
 
-        % Solve the QP (with MPEC pairs) using KNITRO:
+        % Solve the LP (with MPEC pairs) using KNITRO:
         Result = tomRun('knitro',Prob,0);
         
-        z = Result.x_k;
-        
-        % Values of slacks that were added by BuildMPEC
-        %slacks = z(I+1: 2*I);
-        
-        % Original D * original variables, subtract the constants in the
+        z = Result.x_k(1:I);
+        % Original B * original variables, subtract the constants in the
         % constraints to get the result on the c(x) >= 0 form
 
-        dx = D(:,1:I) * z(1:I) - b_L;
+        dx = B(:,1:I) * z - b_L;
         
         % Should be zero, or very close to zero:
-        error = dx(1: I) .* z(1: I);
+        error = dx(1: I) .* z;
             
         LCP_error = max(abs(error));
         if(LCP_error > settings.error_tolerance)
