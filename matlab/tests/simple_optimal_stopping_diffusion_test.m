@@ -602,6 +602,7 @@ function one_stopping_point_test(testCase)
     
     %Check all values
     %dlmwrite(strcat(mfilename,'_15_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %To save results again
+    plot(results.x, results.v, results.x, parameters.S_x(results.x))
     v_old = dlmread(strcat(mfilename,'_15_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
     verifyTrue(testCase,results.converged, 'There is no stopping point.');
     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
@@ -654,6 +655,7 @@ function two_stopping_point_test(testCase)
     
     %Check all values
     %dlmwrite(strcat(mfilename,'_16_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %To save results again
+    plot(results.x, results.v, results.x, parameters.S_x(results.x))
     v_old = dlmread(strcat(mfilename,'_16_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
     verifyTrue(testCase,results.converged, 'There is no stopping point.');
     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
