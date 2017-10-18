@@ -615,8 +615,8 @@ function two_stopping_point_test(testCase)
     parameters.x_min = 0.1; %Reflecting barrier at x_min.  i.e. v'(x_min) = 0 as a boundary value
     parameters.x_max = 1.0; %Reflecting barrier at x_max.  i.e. v'(x_max) = 0 as a boundary value
 
-    parameters.u_x = @(x) 0.15-(x-0.5).^2; %u(x) = x^gamma in this example
-    parameters.S_x = @(x) S_bar * cos(8*x); %S(x) = S_bar in this example
+    parameters.u_x = @(x) 0.15-(x-0.5).^2; %u(x) = 0.15-(x-0.5).^2 in this example
+    parameters.S_x = @(x) S_bar * cos(8*x); %S(x) = S_bar * cos(8*x) in this example
     parameters.mu_x = @(x) mu_bar ; %i.e. mu(x) = mu_bar
     parameters.sigma_2_x = @(x) (sigma_bar*x).^2; %i.e. sigma(x) = (sigma_bar * x).^2
     
