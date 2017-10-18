@@ -162,6 +162,12 @@ And the approximation is,\textbf{TODO:} Incorrect, need to take into account div
 \mathcal{A}v(\set{x_i}) &\approx \frac{A}{\Delta} v ???\label{eq:A-operator-approx-nonuniform}
 \end{align}
 
+\textbf{TODO:} What might be helpful here is to have a vector of $\Delta$ which depend on the upwind direction.  In particular, something like the following (could have it backwards):
+\begin{align}
+\Delta &\equiv (\mu^{-} \leq 0)\Delta_{+} + (\mu^{+} > 0)\Delta_{-}\in\R^I
+\end{align}
+\footnote{\textbf{TODO}: Tie breaking rules are tricky here if $\mu = 0$.  Which direction of $\Delta$ should you use, or does it matter?}
+
 \paragraph{Interior of $A$:} Repeating the analysis of \cref{eq:A-generator-univariate-diffusion-interior}
 
 \subsection{Stationary Distribution of Reflected Univariate Diffusions}
