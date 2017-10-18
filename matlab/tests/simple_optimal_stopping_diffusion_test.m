@@ -586,7 +586,7 @@ function one_stopping_point_test(testCase)
     results = simple_optimal_stopping_diffusion(parameters, settings);
     v = results.v;
     %Check all values
-    dlmwrite(strcat(mfilename,'_15_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %To save results again
+    %dlmwrite(strcat(mfilename,'_15_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %To save results again
     plot(results.x, results.v, results.x, parameters.S_x(results.x))
     v_old = dlmread(strcat(mfilename,'_15_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
     verifyTrue(testCase,results.converged, 'There is no stopping point.');
@@ -597,18 +597,14 @@ end
 function two_stopping_point_test(testCase)
     [settings, ~, tolerances] = unpack_setup(testCase);  
     %These are the defaults used in the yuval solver.  They are not necessarily the best choices, but test consistency.
-    settings.I = 1000;
+    settings.I = 500;
     settings.error_tolerance = 1.0e-12;
-    settings.lm_mu = 1e-3;
-    settings.lm_mu_min = 1e-5;
-    settings.lm_mu_step = 5;
-    settings.max_iter = 20;
+    settings.max_iter = 10000;
     
     %Rewriting parameters entirely.
     mu_bar = -0.01; %Drift.  Sign changes the upwind direction.
     sigma_bar = 0.01; %Variance
     S_bar = 4.0; %the value of stopping
-    gamma = 0.5; %u(x) = x^gamma
 
     %Relevant functions for u(x), S(x), mu(x) and sigma(x) for a general diffusion dx_t = mu(x) dt + sigma(x) dW_t, for W_t brownian motion
     parameters.rho = 0.05; %Discount ra te
@@ -628,7 +624,7 @@ function two_stopping_point_test(testCase)
     %dlmwrite(strcat(mfilename,'_16_v_output.csv'), results.v, 'precision', tolerances.default_csv_precision); %To save results again
     plot(results.x, results.v, results.x, parameters.S_x(results.x))
     v_old = dlmread(strcat(mfilename,'_16_v_output.csv')); %Loads old value, asserts identical.  Note that the precision of floating points in the .csv matters, and can't be lower than test_tol.
-    %verifyTrue(testCase,results.converged, 'There is no stopping point.');
+    verifyTrue(testCase,results.converged, 'There is no stopping point.');
     verifyTrue(testCase, max(abs(v - v_old)) < tolerances.test_tol_less, 'Value of solution no longer matches HACT example');
 end
 
