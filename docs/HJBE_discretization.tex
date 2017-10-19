@@ -9,7 +9,7 @@
 \author{Jesse Perla\\UBC}
 \date{\today}
 \maketitle
- Here, we expand on details for how to discretize HJBE with a control of the drift.\footnote{See \url{operator_discretization_finite_differences.pdf} for more details on the discretization of a linear diffusion operator with finite-differences, and general notation (with equation numbers in that document prefaced by \textit{FD}).}  In particular, this will start by solving the neoclassical growth model first with a deterministic and then a stochastic TFP.
+ Here, we expand on details for how to discretize HJBE with a control of the drift.\footnote{See \url{operator_discretization_finite_differences.pdf} for more details on the discretization of a linear diffusion operator with finite-differences, and general notation (with equation numbers in that document prefaced by \textit{FD}).}  In particular, this set of notes will focus on solving the neoclassical growth model first with a deterministic and then a stochastic TFP.
  
  \section{Neoclassical Growth}
  This solves the simple deterministic neoclassical growth model.
@@ -28,7 +28,7 @@ The law of motion for capital in this setup is,
 	c &= \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:c-neoclassical-growth}
 	\intertext{And,}
 	u(c) &= \frac{\left(v'(k)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma}\label{eq:u-c-neoclassical-growth}
-\intertext{If \cref{eq:c-neoclassical-growth,eq:u-c-neoclassical-growth} was substituted back into \cref{eq:HJBE-neoclassical-growth}, we would have a nonlinear ODE in just $k$.  Define the following, which will be important in the finite difference scheme}
+\intertext{If \cref{eq:c-neoclassical-growth,eq:u-c-neoclassical-growth} were substituted back into \cref{eq:HJBE-neoclassical-growth}, we would have a nonlinear ODE in just $k$.  Define the following, which will be important in the finite difference scheme}
 	\mu(k) &\equiv f(k) - \delta k - c\label{eq:mu-neoclassical-growth}
 	\intertext{Then with \cref{eq:c-neoclassical-growth} this can be defined as a function of the $v(\cdot)$ function,}
 	\mu(k;v) &\equiv f(k) - \delta k - \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:mu-v-neoclassical-growth}
@@ -36,7 +36,7 @@ The law of motion for capital in this setup is,
 	\rho v(k) &= \frac{\left(v'(k)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma} + \mu(k;v) v'(k)\label{eq:HJBE-neoclassical-growth-mu}
 \end{align}
 The HJBE \cref{eq:HJBE-neoclassical-growth-mu} is a nonlinear ODE in $v(k)$.
-3
+
 \paragraph{Steady State}  The goal is for the finite-difference scheme to find the steady-state on its own.  However, in this example we have an equation to verify the solution:
 \begin{align}
 k^* &= \left(\frac{\alpha A}{\rho + \delta}\right)^{\frac{1}{1-\alpha}}\label{eq:steady-state-k}\\
@@ -51,7 +51,13 @@ In order to solve this problem, we will need to use the appropriate ``upwind'' d
 \end{itemize}
 
 \paragraph {Setup}
-Define a uniform grid with $I$ discrete points  $\set{k_i}_{i=1}^I$,  for some small $k_1 \in (0, k^*)$ and large $k_I > k^*$ with $\Delta \equiv k_i - k_{i-1}$ for all $i$.  Further define the notations $\underline{k} \equiv k_1$, $\overline{k} \equiv k_I$ and $v_i \equiv v(k_i)$ for simplicity.  To discretize the derivative at $k_i$, consider both forwards and backwards differences,
+\begin{itemize}
+\item Define a uniform grid with $I$ discrete points  $\set{k_i}_{i=1}^I$,  for some small $k_1 \in (0, k^*)$ and large $k_I > k^*$, with distance between grid points $\Delta \equiv k_i - k_{i-1}$ for all $i$. After discretizing, we will denote the grid with the variable name, i.e. $k \equiv \set{k_i}_{i=1}^I$.
+Further define the notations $\underline{k} \equiv k_1$, $\overline{k} \equiv k_I$ and $v_i \equiv v(k_i)$ for simplicity. 
+\item When we discretize a function, use the function name without arguments to denote the vector.  i.e. $v(k)$ discretized on a grid $\set{k_i}_{i=1}^{I}$ is $v \equiv \set{v(k_i)}_{i=1}^I \in \R^I$.
+\item When referring to a variable $\mu$, define the notation $\mu^{-} \equiv \min\set{\mu,0}$ and $\mu^{+} \equiv \max\set{\mu,0}$. This can apply to vectors as well. For example, $\mu_i^{-} = \mu_i$ if $\mu_i < 0$ and $0$ if $\mu_i > 0$, and $\mu^{-} \equiv \set{\mu^{-}_i}_{i=1}^{I}$.
+
+\item To discretize the derivative at $k_i$, consider both forwards and backwards differences,
 \begin{align}
 	v'_F(k_i) &\approx \frac{v_{i+1} - v_i}{\Delta}\label{eq:forward-diff}\\
 	v'_B(k_i) &\approx \frac{v_i - v_{i-1}}{\Delta}\label{eq:backward-diff}
@@ -61,37 +67,37 @@ Define a uniform grid with $I$ discrete points  $\set{k_i}_{i=1}^I$,  for some s
 	\intertext {Our finite difference approximation to the HJB equation \cref{eq:HJBE-neoclassical-growth-mu} is then}
 	\rho v(k_i) &= \frac{\left(v'(k_i)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma} + \mu(k_i;v) v'(k_i)
 \end{align}
-
-Following the ``upwind scheme'', we will use the forwards approximation whenever there is a positive drift above the steady state level of capital $k^*$, and the backwards approximation when below $k^*$. 
+\item Following the ``upwind scheme'', we will use the forwards approximation whenever there is a positive drift above the steady state level of capital $k^*$, and the backwards approximation when below $k^*$. 
+\end{itemize}
 
 \subsection{Iterating on a Linear System of Equations}
-We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
+This section solves the problem through a series of iterations on a linear system of equations.
+\paragraph{Initial Guess }We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for each consecutive iteration $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
 \begin{align}
 	\frac{v_i^{n+1}-v_i^{n}}{\Delta} + \rho v_i^{n+1} = u(c_i^n) + (v_i^{n+1})^{'}  \underbrace{\left[f(k_i) - \delta k_i - c_i^n\right]}_{\equiv \mu_i}\label{eq:fd-approx-capital}
 \end{align}
 
 Using both the forwards and backwards difference approximations \cref{eq:forward-diff} and \cref{eq:backward-diff}, find the consumption using \cref{eq:c-neoclassical-growth} and compute savings,
 \begin{align}
-\mu_{i,F} = f(k_i) - \delta k_i - \left(v_F'(k_i) \right)^{-\frac{1}{\gamma}}\\
-\mu_{i,B} = f(k_i) - \delta k_i - \left(v_B'(k_i) \right)^{-\frac{1}{\gamma}}\\
+\mu^n_{i,F} = f(k_i) - \delta k_i - \left({v_F^n}'(k_i) \right)^{-\frac{1}{\gamma}}\\
+\mu^n_{i,B} = f(k_i) - \delta k_i - \left({v_B^n}'(k_i) \right)^{-\frac{1}{\gamma}}
 \end{align}
 
-When referring to a variable $\mu$, define the notation $\mu^{-} \equiv \min\set{\mu,0}$ and $\mu^{+} \equiv \max\set{\mu,0}$. \\
-Depending upon the sign of the drift, a choice is made between using forward or backward differences. Let $\bold{1}_{\{ \cdot \}}$ be an indicator function and  $\bar{v_i}' $ be the derivative at the steady state, given in this example by $\bar{v_i}' = (f(k_i)-\delta k_i)^{-\gamma}$. Then the approximation of the derivative is 
+Depending upon the sign of the drift, a choice is made between using forward or backward differences. Let $\bold{1}_{\{ \cdot \}}$ be an indicator function\footnote{For now, assume that if the case $\mu_{F}>0$  and $\mu_{B}<0$ should arise, take $\bold{1}_{\{ \mu_{i,F} > 0\}} $ to be 1 and $\bold{1}_{ \{\mu_{i,B} < 0\}}\ $ to be 0.}and  $\bar{v_i}' $ be the derivative at the steady state, given in this example by $\bar{v_i}' = (f(k_i)-\delta k_i)^{-\gamma}$. Then the approximation of the derivative is 
 \begin{align}
-v_i'=v'_{i,F}\bold{1}_{\{ \mu_{i,F} > 0\}}+v'_{i,B}\bold{1}_{\{ \mu_{i,B}<0 \}}+\bar{v}' _i\bold{1}_{\{ \mu_{i,F}<0<\mu_{i,B} \}}
+{v_i^n}'={v_{i,F}^n}'\bold{1}_{\{ \mu_{i,F} > 0\}}+{v_{i,B}^n}\bold{1}_{\{ \mu_{i,B}<0 \}}+{\bar{v}_i^n}'\bold{1}_{\{ \mu_{i,F}<0<\mu_{i,B} \}}
 \end{align}
 
-Define the matrices $X, Y, Z \in \R^{I} $ such that 
+Define the vectors $X, Y, Z \in \R^{I} $ such that 
 \begin{align}
-	X &= -\frac {\mu^{-} _B}{\Delta}\label{eq:X} \\
-	Y &= -\frac {\mu^{+} _F}{\Delta} + \frac {\mu^{-} _B}{\Delta}\label{eq:Y} \\
-	Z &= \frac {\mu^{+} _F}{\Delta}\label{eq:Z}
+	\Delta X &= -({\mu^{n} _B})^{-}\label{eq:X} \\
+	\Delta Y &= -({\mu^{n} _F})^{+} + ({\mu^{n} _B})^{-}\label{eq:Y} \\
+	\Delta Z &= ({\mu^{n} _F})^{+}\label{eq:Z}
 \end{align}
 
-With these, construct the matrix $A$
+With these, construct the sparse matrix $A^n$
 \begin{align}
-A &\equiv \begin{bmatrix}
+A^n &\equiv \begin{bmatrix}
 Y_1 & Z_1 & 0 & \cdots & \cdots & \cdots & 0 \\
 X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 0 & \ddots & \ddots & \ddots & \ddots &  & \vdots \\
@@ -102,11 +108,13 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 \end{align}
 
 
-We can then solve as a system of equations 
+We can then write as a system of equations in matrix form and solve for $v^{n+1}$
 \begin{align}
-B = (\rho + \frac{1}{\Delta})I - A\\
-b =\\
+\Delta B^n = (\Delta \rho + 1)I - \Delta A^n\\
+\Delta b^n = \Delta u(c^n) + v^n\\
+B^{n}v^{n+1}= {b^n}
 \end{align}
+
 
 
 When $v^{n+1}$ is sufficiently close in value to $v^n$, the algorithm is complete. 
@@ -114,6 +122,11 @@ When $v^{n+1}$ is sufficiently close in value to $v^n$, the algorithm is complet
 
 
 \subsection{Nonlinear System of Equations}
+This section will focus on solving the problem directly as a nonlinear system of equations. Returning to equation \cref{eq:HJBE-neoclassical-growth-mu}, we have 
+\begin{align}
+\rho v_i &= \frac{\left(v'_i\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma} + \mu(k_i;v) v'_i
+\end{align}
+
 
 \bibliography{etk-references}
 
