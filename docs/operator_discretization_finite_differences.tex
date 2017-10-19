@@ -66,7 +66,7 @@ To distinguish between the boundary values we will consider, define
 \paragraph{What Boundary Value to Assume?}
 In general, a reflection for a large $\bar{x}$ and small $\underline{x}$ is the most appropriate.  The exceptions would tend to have direct economics associated with a death or uncontrolled stopping.\footnote{For example, even if you have firms optimally exiting, you could use a small reflection at $\bar{x}$ for the variational methods in \url{optimal_stopping.pdf} as long as $\bar{x}$ is below any binding level.}
 
-\subsection{Upwind Finite Difference Discretization for $A$ with a Uniform Grid}\label{sec:upwind-uniform}
+\subsection{Upwind Finite Difference Discretization for $A$ with a Uniform Grid}
 Denote the vector of drifts and variances as $\mu \equiv \set{\mu(x_i)}_{i=1}^I$ and $\sigma^2 \equiv \set{\sigma(x_i)^2}_{i=1}^I$.  For a uniform grid with $\Delta \equiv x_{i+1} - x_i$.  Define the vectors, $X,Y,Z \in \R^I$ such that,
 \begin{align}
 	X &= - \mu^{-}+ \frac{\sigma^{2}}{2 \Delta}\label{eq:X} \\
@@ -86,7 +86,7 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 \end{bmatrix}\in\R^{I\times I}\label{eq:A}\\
 b &\equiv \begin{bmatrix}(1-R_{\underline{x}})X_1\underline{v} \\ 0 \\ \vdots \\ 0 \\  (1-R_{\bar{x}})Z_I\bar{v}\end{bmatrix}^T\in\R^I \label{eq:b}
 \intertext{where,}
-\mathcal{A}v(\set{x_i}) &\approx \frac{A}{\Delta} v + \frac{b}{\Delta}\label{eq:A-operator-approx}
+\mathcal{A}v(\set{x_i}) &\approx \frac{A}{\Delta} v + \frac{b}{\Delta}
 \end{align}
 
 Note that the special cases for the $1$st and $I$th row correspond to the boundary values and are adjusted depending on the type of boundary value. Also, note that the $b$ vector is all zeros if the boundary values are reflective and/or the matched value $\bar{v}$ or $\underline{v}$ is $0$).
@@ -142,34 +142,6 @@ and the formula for the discretized operator is,
 \Delta \mathcal{A} v(x_I)&\approx \left(-\mu_I +\frac{\sigma_I^2}{2\Delta}\right) v_{I-1} + \left(\mu_I - \frac{\sigma_I^2}{2\Delta}\right) v_I 
 \end{align}
 
-\subsection{Upwind Finite Difference Discretization for $A$ with a Non-Uniform Grid}\label{sec:upwind-non-uniform}
-Redoing section \cref{sec:upwind-uniform} with a nonuniform grid, from \cref{eq:Delta-i-plus,eq:Delta-i-minus} define the vectors,
- \begin{align}
-\Delta_{+}&\equiv \set{\Delta_{i,+}}_{i=1}^I = \set{x_{i+1} - x_i}_{i=1}^{I}\label{eq:Delta-plus}\\
-\Delta_{-}&\equiv \set{\Delta_{i,-}}_{i=1}^I = \set{x_i - x_{i-1}}_{i=1}^I\label{eq:Delta-minus}	
-\end{align}
-Note here that for simplicity of notation the $\Delta_{+}$ node goes beyond $i=I$ and the $\Delta_{-}$ goes before $i=1$.  Hence, it is convenient to specify ``ghost-nodes'' $x_0$ and $x_{I+1}$.  While we could set them to arbitrary values, it is probably easiest to just let $x_0 = x_1 - \Delta_{1,+}$ and $x_{I+1} = x_I + \Delta_{I,-}$.
-
-Only solving the versions with reflecting barriers (i.e. $b=0$), the modified versions of \cref{eq:X,eq:Y,eq:Z,eq:A} are, \textbf{TODO: THESE WERE JUST A FEW GUESSES...}
-\begin{align}
-X &= - \mu^{-}+ \frac{\sigma^{2}}{\Delta_{+} + \Delta_{-}}????\label{eq:X-nonuniform} \\
-Y &= - \mu^{+} + \mu^{-}- \frac{\sigma^{2}}{(\Delta_{+} + \Delta_{-})/2}???\label{eq:-nonuniform} \\
-Z &= \mu^{+} + \frac{\sigma^{2}}{\Delta_{+} + \Delta_{-}}???\label{eq:Z-nonuniform}\\
-A &= \ldots \label{eq:A-nonuniform}
-\end{align}
-And the approximation is,\textbf{TODO:} Incorrect, need to take into account dividing by vector $\Delta$.
-\begin{align}
-\mathcal{A}v(\set{x_i}) &\approx \frac{A}{\Delta} v ???\label{eq:A-operator-approx-nonuniform}
-\end{align}
-
-\textbf{TODO:} What might be helpful here is to have a vector of $\Delta$ which depend on the upwind direction.  In particular, something like the following (could have it backwards):
-\begin{align}
-\Delta &\equiv (\mu^{-} \leq 0)\Delta_{+} + (\mu^{+} > 0)\Delta_{-}\in\R^I
-\end{align}
-\footnote{\textbf{TODO}: Tie breaking rules are tricky here if $\mu = 0$.  Which direction of $\Delta$ should you use, or does it matter?}
-
-\paragraph{Interior of $A$:} Repeating the analysis of \cref{eq:A-generator-univariate-diffusion-interior}
-
 \subsection{Stationary Distribution of Reflected Univariate Diffusions}
 Given a model without any birth/death/stopping, let the pdf of the distribution of $x$ be,
 \begin{align}
@@ -221,13 +193,6 @@ X q &= y
 	 \intertext{As above, we would expect $X$ to have only rank $2 I$, and hence this is an overdetermined problem with a unique solution.  Alternatively we could solve it as a linear least squares problem,}
 	\min_{q}& \norm{y - X q}^2\label{eq:KFE-HJBE-least-squares}	
 \end{align}
-
-\section{Time-Independent Univariate Diffusions with Non-Uniform Grid}\label{sec:time-independent-univariate-diffusion-nonuniform}
-This section does a version of the discretization with a non-uniform grid
-\begin{itemize}
-	\item Discretization
-\end{itemize}
-\subsection{}
 
 \section{Time-Dependent Univariate Diffusions}\label{sec:time-dependent-univariate-diffusion}
 This section implements a version of \cref{sec:time-dependent-univariate-diffusion}, but where important parameters/settings/etc. vary with time.  In that case, the SDE is
