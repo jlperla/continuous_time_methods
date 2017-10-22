@@ -15,6 +15,7 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
 	%Check if the grid is uniform
 	tol = 1E-10; %Tolerance for seeing if the grid is uniform
 	Delta_p = diff(x); %(1) Find distances between grid points.
+    Delta_m = x(2:I) - x(1: I-1); % \Delta_{i, -}
     if(check_absorbing_states) %In some circumstances, such as in optimal stopping problems, we can ignore these issues.
         assert(sigma_2(1) > 0 || mu(1) >= 0, 'Cannot jointly have both sigma = 0 or mu < 0 at x_min, or an absorbing state');
         assert(sigma_2(end) > 0 || mu(end) <= 0, 'Cannot jointly have both sigma = 0 or mu > 0 at x_max, or an absorbing state');
@@ -23,7 +24,7 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
 		Delta = x(2)-x(1); % (1)
 		% Delta_2 = Delta^2; %Just squaring the Delta for the second order terms in the finite differences.
 
-		%% Construct sparse A matrix
+		%% Construct sparse A matrix with uniform grid
 		mu_m = min(mu,0); %General notation of plus/minus.
 		mu_p = max(mu,0); 		
 		X = - mu_m + sigma_2/(2*Delta); % (7)
@@ -36,9 +37,22 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
 		%Manually adjust the boundary values at the corners.
 		A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)
 		A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
-	else
-		A = NaN;
-		assert(false, 'Non-uniform grids are not yet supported');
+    else % For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
+		
+        %% Construct sparse A matrix with non-uniform gird
+		mu_m = min(mu,0); %General notation of plus/minus.
+		mu_p = max(mu,0); 		
+		X = - mu_m .* Delta_p + (sigma_2 .* Delta_p) ./ (Delta_p + Delta_m); % 
+		Y = - mu_p .* Delta_m + mu_m .* Delta_p - sigma_2; % 
+		Z =  mu_p .* Delta_m + (sigma_2 .* Delta_m)./(Delta_p + Delta_m); %
+		
+		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
+		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is correct.  Corners will require adjustment    
+		
+		A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)
+		A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
+	
+
 	end	
 end	
 

@@ -142,6 +142,27 @@ and the formula for the discretized operator is,
 \Delta \mathcal{A} v(x_I)&\approx \left(-\mu_I +\frac{\sigma_I^2}{2\Delta}\right) v_{I-1} + \left(\mu_I - \frac{\sigma_I^2}{2\Delta}\right) v_I 
 \end{align}
 
+\subsection{Upwind Finite Difference Discretization for $A$ with a Non-Uniform Grid}
+Here is an attempt for this non-uniform grid issue.\\
+For non-uniform grid, $\Delta_{i, +} \equiv x_{i+1} - x_{i}$ and $\Delta_{i, -} \equiv x_{i} - x_{i-1}$\\
+Based on the recommendation of second derivative choice from \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf}, a good candidate approximation is
+\begin{equation}
+v_i^{''} = \frac{\Delta_{-}v_{i+1} - (\Delta_{-}+\Delta_{+})v_i+\Delta_{+}v_{i-1}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})\Delta_{-}\Delta_{+}} \label{eq:v''}
+\end{equation}
+Then we can define $X$, $Y$ and $Z$ as 
+\begin{align}
+X &= -\frac{\mu^{-}}{\Delta_{-}} + \frac{\sigma^2}{2}\frac{\frac{\Delta_{+}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})}}{\Delta_{+}\Delta_{-}}\\
+Y &= -\frac{\mu^{+}}{\Delta_{+}}+\frac{\mu^{-}}{\Delta_{-}} -\frac{\sigma^2}{\Delta_{+}\Delta_{-}}\\
+Z &= \frac{\mu^{+}}{\Delta_{+}} + \frac{\sigma^2}{2}\frac{\frac{\Delta_{-}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})}}{\Delta_{+}\Delta_{-}}
+\end{align}
+For the stability of numerical calculation, we can multiply every term in $A$ by $\Delta_{+}\Delta_{-}$ to obtain $\Delta_{+}\Delta_{-}A$. So we can redefine $X, Y $and $Z$ as 
+\begin{align}
+X &= -\mu^{-}\Delta_{+} + \frac{\sigma^2}{2}\frac{\Delta_{+}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})} \label{eq:X non-nuiform}\\
+Y &= -\mu^{+}\Delta_{-}+\mu^{-}\Delta_{+} -\sigma^2 \label{eq:Y non-nuiform}\\
+Z &=\mu^{+}\Delta_{-} + \frac{\sigma^2}{2}\frac{\Delta_{-}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})} \label{eq:Z non-nuiform}
+\end{align}
+If this attempt is correct, care will need to be taken to determine the result from discretize\_univariate\_diffusion.m , which is uniform grid or non-uniform grid whenever we are using the function discretize\_univariate\_diffusion.m.
+
 \subsection{Stationary Distribution of Reflected Univariate Diffusions}
 Given a model without any birth/death/stopping, let the pdf of the distribution of $x$ be,
 \begin{align}
