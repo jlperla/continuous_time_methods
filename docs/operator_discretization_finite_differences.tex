@@ -161,7 +161,18 @@ X &= -\mu^{-}\Delta_{+} + \frac{\sigma^2}{2}\frac{\Delta_{+}}{\frac{1}{2}(\Delta
 Y &= -\mu^{+}\Delta_{-}+\mu^{-}\Delta_{+} -\sigma^2 \label{eq:Y non-nuiform}\\
 Z &=\mu^{+}\Delta_{-} + \frac{\sigma^2}{2}\frac{\Delta_{-}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})} \label{eq:Z non-nuiform}
 \end{align}
-If this attempt is correct, care will need to be taken to determine the result from discretize\_univariate\_diffusion.m , which is uniform grid or non-uniform grid whenever we are using the function discretize\_univariate\_diffusion.m.
+It is not clear that how to deal with $\Delta_{1, -} = v_1 - v_0$ and $\Delta_{I, +} = v_{I+1} - v_I$, where $v_0$ and $v_I$ are not well defined. I temporarily treat $\Delta_{1, -} = \Delta_{1, +}$ and $\Delta_{I, +} = \Delta_{I, -}$. \\
+There is another way to define $\Delta$ for Kolmogorov Forward Equation with non-uniform grids, which is introduced in \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf}. It defines $\tilde{\Delta}$ as an approximation as following
+\begin{equation}
+\tilde{\Delta} = 
+\begin{cases}
+&\frac{1}{2}\Delta_{i, +} \qquad i = 1\\ 
+&\frac{1}{2}(\Delta_{i, +}+\Delta_{i, -}) \qquad i = 2, ..., I-1\\
+&\frac{1}{2}\Delta_{i, -} \qquad i = I
+\end{cases} \label{eqs:Delta_tilde}
+\end{equation}
+
+\noindent If this attempt is correct, care will need to be taken to determine the result from discretize\_ univariate\_diffusion.m , which is uniform grid or non-uniform grid whenever we are using the function discretize\_univariate\_diffusion.m.
 
 \subsection{Stationary Distribution of Reflected Univariate Diffusions}
 Given a model without any birth/death/stopping, let the pdf of the distribution of $x$ be,

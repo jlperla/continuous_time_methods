@@ -14,8 +14,8 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
 
 	%Check if the grid is uniform
 	tol = 1E-10; %Tolerance for seeing if the grid is uniform
-	Delta_p = diff(x); %(1) Find distances between grid points.
-    Delta_m = x(2:I) - x(1: I-1); % \Delta_{i, -}
+	Delta_p = [diff(x)' (x(I)-x(I-1))]'; %(1) Find distances between grid points.
+    Delta_m = [x(2)-x(1) diff(x)']'; % \Delta_{i, -}
     if(check_absorbing_states) %In some circumstances, such as in optimal stopping problems, we can ignore these issues.
         assert(sigma_2(1) > 0 || mu(1) >= 0, 'Cannot jointly have both sigma = 0 or mu < 0 at x_min, or an absorbing state');
         assert(sigma_2(end) > 0 || mu(end) <= 0, 'Cannot jointly have both sigma = 0 or mu > 0 at x_max, or an absorbing state');
@@ -37,17 +37,17 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
 		%Manually adjust the boundary values at the corners.
 		A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)
 		A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
-    else % For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
-		
+    else
         %% Construct sparse A matrix with non-uniform gird
+        % For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
 		mu_m = min(mu,0); %General notation of plus/minus.
 		mu_p = max(mu,0); 		
-		X = - mu_m .* Delta_p + (sigma_2 .* Delta_p) ./ (Delta_p + Delta_m); % 
-		Y = - mu_p .* Delta_m + mu_m .* Delta_p - sigma_2; % 
-		Z =  mu_p .* Delta_m + (sigma_2 .* Delta_m)./(Delta_p + Delta_m); %
+		X = - mu_m .* Delta_p + (sigma_2 .* Delta_p) ./ (Delta_p + Delta_m); %(28)
+		Y = - mu_p .* Delta_m + mu_m .* Delta_p - sigma_2; % (29)
+		Z =  mu_p .* Delta_m + (sigma_2 .* Delta_m)./(Delta_p + Delta_m); % (30)
 		
 		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
-		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is correct.  Corners will require adjustment    
+		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is the same as one for uniform grid case.  Corners will require adjustment    
 		
 		%Manually adjust the boundary values at the corners.
 		A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)
