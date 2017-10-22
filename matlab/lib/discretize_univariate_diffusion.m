@@ -49,6 +49,7 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
 		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
 		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is correct.  Corners will require adjustment    
 		
+		%Manually adjust the boundary values at the corners.
 		A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)
 		A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
 	
