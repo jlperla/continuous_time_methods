@@ -42,9 +42,9 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
         % For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
 		mu_m = min(mu,0); %General notation of plus/minus.
 		mu_p = max(mu,0); 		
-		X = - mu_m .* Delta_p + (sigma_2 .* Delta_p) ./ (Delta_p + Delta_m); %(28)
-		Y = - mu_p .* Delta_m + mu_m .* Delta_p - sigma_2; % (29)
-		Z =  mu_p .* Delta_m + (sigma_2 .* Delta_m)./(Delta_p + Delta_m); % (30)
+		X = - mu_m + sigma_2 ./ (Delta_p + Delta_m); %(28)
+		Y = - mu_p .* (Delta_m ./ Delta_p) + mu_m - sigma_2 ./ Delta_p; % (29)
+		Z =  mu_p .* Delta_m ./ Delta_p + (sigma_2 .* Delta_m ./ Delta_p)./(Delta_p + Delta_m); % (30)
 		
 		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
 		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is the same as one for uniform grid case.  Corners will require adjustment    
