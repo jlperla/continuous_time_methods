@@ -164,10 +164,11 @@ Y &= -\mu^{+}\frac{\Delta_{-}}{\Delta_{+}}+\mu^{-} -\frac{\sigma^2}{\Delta_{+}} 
 Z &=\mu^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^2}{(\Delta_{+}+\Delta_{-})} \label{eq:Z-non-uniform}
 \end{align}
 We treat $\Delta_{1, -} = \Delta_{1, +}$ and $\Delta_{I, +} = \Delta_{I, -}$, due to ghost points, $x_0$ and $x_{I+1}$ on both boundaries.  \\
-In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write 
-\begin{equation}
-\mathcal{A}v(\set{x_i}) \approx \frac{A}{\Delta_{-}} v + \frac{b}{\Delta_{-}}
-\end{equation}
+%This isn't really well define in terms of matrix multiplication/etc.
+%In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write 
+%\begin{equation}
+%\mathcal{A}v(\set{x_i}) \approx \frac{A}{\Delta_{-}} v + \frac{b}{\Delta_{-}}
+%\end{equation}
 
 
 \paragraph{Calculating in Matrix Form for Reflecting Barriers}
@@ -191,18 +192,15 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 0 & \cdots & \cdots & \cdots & 0 & X_I & Y_I+Z_I\\
 \end{bmatrix}\in\R^{I\times I}\label{eq:A-non-uniform}
 \end{align}
-In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write\footnote{\textbf{TODO:} Check what the multiplication should be by comparing to the equations at each node.
+In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write\footnote{\textbf{TODO:} Check what the multiplication should be by comparing to the equations at each node.  Note that $\mathbf{I}\Delta_{-}$ creates diagonal of $\Delta_{i,-}$
 }
-Define
 \begin{align}
-\mathbf{\Delta} &\equiv \begin{bmatrix}
-\Delta_{-}\\
-\vdots\\
-\Delta_{-}\\
-\end{bmatrix}\in\R^{I\times I}\\
-\intertext{Then, using pointwise multiplication}
-\mathbf{\Delta}\odot \mathcal{A}v(\set{x_i}) &\approx A v
+\mathbf{I}\Delta_{-} \mathcal{A}v(\set{x_i}) &\approx A v\\
+\intertext{However, this can be more succintly written with the definition,}
+\mathbf{\Delta}_{-} &\equiv \mathbf{I}\Delta_{-} = \text{diag}(\Delta_{-})\\
+\mathbf{\Delta}_{-} \mathcal{A}v(\set{x_i}) &\approx A v
 \end{align}
+
 
 
 
@@ -289,7 +287,7 @@ In the simple case of an uncontrolled linear stochastic process with no optimal 
 	\intertext{subject to the appropriate boundary conditions.  Discretizing the grid, let $u \equiv \set{u(x_i)}_{i=1}^I\in\R^I$, then the discretized version is,}
 	\Delta \rho v &= \Delta u + A v\\
 	\intertext{Or,}
-	(\Delta \rho \mathbf{I} - A) v &= \Delta u\label{eq:discretized-linear-HJBE}
+	(\rho\Delta  \mathbf{I} - A) v &= \Delta u\label{eq:discretized-linear-HJBE}
 	\intertext{This simple linear system can be solved for $v$.  In principle, the HJBE and the KFE could be solved at the same time (here they are uncoupled, but in principle there could be direct connections in a nonlinear setup) by stacking $q \equiv \begin{bmatrix}v & f\end{bmatrix}^T\in\R^{2 I}$ \cref{eq:discretized-linear-HJBE,eq:KFE-least-squares}.  Define,}
 y &\equiv \begin{bmatrix}\Delta u \\0 \\ \vdots \\ 0 \\ \Delta 1\end{bmatrix}\in\R^{2 I + 1}\\
 X &\equiv \begin{bmatrix}
@@ -302,6 +300,15 @@ X q &= y
 	 \intertext{As above, we would expect $X$ to have only rank $2 I$, and hence this is an overdetermined problem with a unique solution.  Alternatively we could solve it as a linear least squares problem,}
 	\min_{q}& \norm{y - X q}^2\label{eq:KFE-HJBE-least-squares}	
 \end{align}
+
+\subsection{Solving Simple Time-Independent Linear HJBE with a Nonuniform Grid}\label{sec:simple-HJBE-nonuniform}
+Repeating for the non-uniform grid.
+\begin{align}
+\mathbf{\Delta}_{-} \rho v &= \mathbf{\Delta}_{-} u + A v\\
+\text{or,}
+( \rho \mathbf{\Delta}_{-} - A) v &= \mathbf{\Delta}_{-} u\label{eq:discretized-linear-HJBE-non-uniform}
+\end{align}
+The equation in \cref{eq:discretized-linear-HJBE-non-uniform} can be solved for $v$ on the non-uniform grid.
 
 \section{Time-Dependent Univariate Diffusions}\label{sec:time-dependent-univariate-diffusion}
 This section implements a version of \cref{sec:time-dependent-univariate-diffusion}, but where important parameters/settings/etc. vary with time.  In that case, the SDE is
