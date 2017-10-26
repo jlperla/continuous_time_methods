@@ -142,6 +142,9 @@ and the formula for the discretized operator is,
 \Delta \mathcal{A} v(x_I)&\approx \left(-\mu +\frac{\sigma^2}{2\Delta}\right) v_{I-1} + \left(\mu - \frac{\sigma^2}{2\Delta}\right) v_I 
 \end{align}
 
+
+
+
 \subsection{Upwind Finite Difference Discretization for $A$ with a Non-Uniform Grid}
 For non-uniform grid, $\Delta_{+} \equiv x_{i+1} - x_{i}$ and $\Delta_{-} \equiv x_{i} - x_{i-1}$\\
 Based on the recommendation of second derivative choice from \url{http://www.princeton.edu/~moll/HACTproject/HACT_Numerical_Appendix.pdf}, a good candidate approximation is
@@ -160,55 +163,93 @@ X &= -\mu^{-} + \frac{\sigma^2}{(\Delta_{+}+\Delta_{-})} \label{eq:X-non-uniform
 Y &= -\mu^{+}\frac{\Delta_{-}}{\Delta_{+}}+\mu^{-} -\frac{\sigma^2}{\Delta_{+}} \label{eq:Y-non-uniform}\\
 Z &=\mu^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^2}{(\Delta_{+}+\Delta_{-})} \label{eq:Z-non-uniform}
 \end{align}
-We treat $\Delta_{1, -} = \Delta_{1, +}$ and $\Delta_{I, +} = \Delta_{I, -}$, due to ghost points, $v_0$ and $v_{I+1}$ on both boundaries.  \\
+We treat $\Delta_{1, -} = \Delta_{1, +}$ and $\Delta_{I, +} = \Delta_{I, -}$, due to ghost points, $x_0$ and $x_{I+1}$ on both boundaries.  \\
 In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write 
 \begin{equation}
 \mathcal{A}v(\set{x_i}) \approx \frac{A}{\Delta_{-}} v + \frac{b}{\Delta_{-}}
 \end{equation}
+
+
+\paragraph{Calculating in Matrix Form for Reflecting Barriers}
+First, calculate the first difference vectors $\Delta_{-}, \Delta_{+} \in \R^I$.  From the $x \in \R^I$ vector, this can be calculated in using the first-difference function in matlab/etc. as the identical structure to \cref{eq:A}
+\begin{align}
+\Delta_{-} &\equiv \begin{bmatrix} x_2 - x_1 \\
+\text{diff}(x)
+\end{bmatrix}\\
+\Delta_{+} &\equiv \begin{bmatrix} \text{diff}(x)\\
+x_I - x_{I-1}
+\end{bmatrix}
+\end{align}
+Next, with this definition \cref{eq:X-non-uniform,eq:Y-non-uniform,eq:Z-non-uniform} hold directly as vectors.  With these, the matrix $A$ is constructed (assuming reflecting boundaries) as.
+\begin{align}
+A &\equiv \begin{bmatrix}
+Y_1 + X_1 & Z_1 & 0 & \cdots & \cdots & \cdots & 0 \\
+X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
+0 & \ddots & \ddots & \ddots & \ddots &  & \vdots \\
+\vdots & &\ddots & \ddots & \ddots & \ddots  & \vdots \\
+\vdots & & & \ddots & X_{I-1} & Y_{I-1}  & Z_{I-1} \\
+0 & \cdots & \cdots & \cdots & 0 & X_I & Y_I+Z_I\\
+\end{bmatrix}\in\R^{I\times I}\label{eq:A-non-uniform}
+\end{align}
+In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write\footnote{\textbf{TODO:} Check what the multiplication should be by comparing to the equations at each node.
+}
+Define
+\begin{align}
+\mathbf{\Delta} &\equiv \begin{bmatrix}
+\Delta_{-}\\
+\vdots\\
+\Delta_{-}\\
+\end{bmatrix}\in\R^{I\times I}\\
+\intertext{Then, using pointwise multiplication}
+\mathbf{\Delta}\odot \mathcal{A}v(\set{x_i}) &\approx A v
+\end{align}
+
+
+
 \paragraph{Interior of $A$:}
 To better understand the construction of $A$ and $b$, look at individual rows of $A$ with the ODE.
 
 In the interior ($1 < i < I$), the discretization of \cref{eq:A-generator-univariate-diffusion}
 \begin{align}
-\Delta_{-} \mathcal{A} v(x_i) &\approx \underbrace{\left(v_i-v_{i-1}\right)\mu_i^{-}+ \left(v_{i+1}-v_i\right)\frac{\Delta_{-}}{\Delta_{+}}\mu_i^{+}}_{\text{Upwind Scheme}}  + \sigma_i^2 \frac{\Delta_{-}v_{i+1} - (\Delta_{+}+\Delta_{-}) v_i + \Delta_{+}v_{i-1}}{\Delta_{+}(\Delta_{+}+\Delta_{-})}\label{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior}\\
+\Delta_{i,-} \mathcal{A} v(x_i) &\approx \underbrace{\left(v_i-v_{i-1}\right)\mu_i^{-}+ \left(v_{i+1}-v_i\right)\frac{\Delta_{i,-}}{\Delta_{i,+}}\mu_i^{+}}_{\text{Upwind Scheme}}  + \sigma_i^2 \frac{\Delta_{i,-}v_{i+1} - (\Delta_{i,+}+\Delta_{i,-}) v_i + \Delta_{i,+}v_{i-1}}{\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}\label{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior}\\
 \intertext{The upwind scheme chooses either forward or backward differences, depending on the sign of the drift.  Collecting terms, we see the derivation for the definitions in \cref{eq:X-non-uniform,eq:Y-non-uniform,eq:Z-non-uniform}}
-&= \underbrace{\left(-\mu_i^{-} +\frac{\sigma_i^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv X_i}v_{i-1} + \underbrace{\left(\mu_i^{-} - \mu_i^{+}\frac{\Delta_{-}}{\Delta_{+}}-\frac{\sigma_i^2}{\Delta_{+}}\right)}_{\equiv Y_i}v_i + \underbrace{\left(\mu_i^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma_i^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv Z_i}v_{i+1}\label{eq:A-collected-interior-with-nonuniform-grid}
+&= \underbrace{\left(-\mu_i^{-} +\frac{\sigma_i^2}{\Delta_{i,+}+\Delta_{i,-}}\right)}_{\equiv X_i}v_{i-1} + \underbrace{\left(\mu_i^{-} - \mu_i^{+}\frac{\Delta_{i,-}}{\Delta_{i,+}}-\frac{\sigma_i^2}{\Delta_{i,+}}\right)}_{\equiv Y_i}v_i + \underbrace{\left(\mu_i^{+}\frac{\Delta_{i,-}}{\Delta_{i,+}} + \frac{\Delta_{i,-}}{\Delta_{i,+}}\frac{\sigma_i^2}{\Delta_{i,+}+\Delta_{i,-}}\right)}_{\equiv Z_i}v_{i+1}\label{eq:A-collected-interior-with-nonuniform-grid}
 \end{align}
 
 \paragraph{Boundary Value at $\underline{x}$:}
-As $i =1$, given the ``ghost node'' $x_0$, the discretized operator from \cref{eq:A-collected-interior-with-nonuniform-grid} is
+As $i =1$, given the ``ghost node'' $x_0$, we recall the assumption that $\Delta_{1,-} = \Delta_{1,+}$.  Hence, the discretized operator from \cref{eq:A-collected-interior-with-nonuniform-grid} is
 \begin{align}
-\Delta \mathcal{A} v(x_1) &\approx \left(-\mu_1^{-} +\frac{\sigma_1^2}{\Delta_{+}+\Delta_{-}}\right)v_0 + \left(\mu_1^{-} - \mu_1^{+}\frac{\Delta_{-}}{\Delta_{+}}-\frac{\sigma_1^2}{\Delta_{+}}\right) v_1 + \left(\mu_1^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma_1^2}{\Delta_{+}+\Delta_{-}}\right)v_2\label{eq:A-collected-with-nonuniform-grid-left}\\
+\Delta_{1,+}\mathcal{A} v(x_1) = \Delta_{1,-}\mathcal{A} v(x_1) &\approx \left(-\mu_1^{-} +\frac{\sigma_1^2}{2 \Delta_{1,+}}\right)v_0 + \left(\mu_1^{-} - \mu_1^{+}-\frac{\sigma_1^2}{\Delta_{1,+}}\right) v_1 + \left(\mu_1^{+} + \frac{\sigma_1^2}{2 \Delta_{1,+}}\right)v_2\label{eq:A-collected-with-nonuniform-grid-left}\\
 \intertext{In the case of the boundary value $v(\underline{x}) = \underline{v}$, subsitute for $v_0 =  \underline{v}$ to find,}
-&\approx \underbrace{\overbrace{\left(-\mu_1^{-} +\frac{\sigma_1^2}{\Delta_{+}+\Delta_{-}}\right)}^{\equiv X_1}\underline{v}}_{\equiv b_1} +  \underbrace{\left(\mu_1^{-} - \mu_1^{+}\frac{\Delta_{-}}{\Delta_{+}}-\frac{\sigma_1^2}{\Delta_{+}}\right)}_{\equiv Y_1}v_1 + \underbrace{\left(\mu_1^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma_1^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv Z_1}v_2\\
+&\approx \underbrace{\overbrace{\left(-\mu_1^{-} +\frac{\sigma_1^2}{2 \Delta_{1,+}}\right)}^{\equiv X_1}\underline{v}}_{\equiv b_1} +  \underbrace{\left(\mu_1^{-} - \mu_1^{+}-\frac{\sigma_1^2}{\Delta_{1,+}}\right)}_{\equiv Y_1}v_1 + \underbrace{\left(\mu_1^{+} + \frac{\sigma_1^2}{2 \Delta_{1,+}}\right)}_{\equiv Z_1}v_2\\
 \intertext{Alternatively, if the boundary value is $v'(\underline{x}) = 0$, take \cref{eq:A-collected-with-nonuniform-grid-left} and use $v'(\underline{x}) \approx \frac{v_1-v_0}{\Delta} = 0, \implies v_1 = v_0$, so}
-\Delta \mathcal{A} v(x_1) &\approx \left(\underbrace{\left(-\mu_1^{-} +\frac{\sigma_1^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv X_1} + \underbrace{\left(\mu_1^{-} - \mu_1^{+}\frac{\Delta_{-}}{\Delta_{+}}-\frac{\sigma_1^2}{\Delta_{+}}\right)}_{\equiv Y_1}\right)v_1 + \underbrace{\left(\mu_1^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma_1^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv Z_1}v_2
+ &\approx \left(\underbrace{\left(-\mu_1^{-} +\frac{\sigma_1^2}{2 \Delta_{1,+}}\right)}_{\equiv X_1} + \underbrace{\left(\mu_1^{-} - \mu_1^{+}-\frac{\sigma_1^2}{\Delta_{1,+}}\right)}_{\equiv Y_1}\right)v_1 + \underbrace{\left(\mu_1^{+} + \frac{\sigma_1^2}{2 \Delta_{1,+}}\right)}_{\equiv Z_1}v_2\label{eq:reflecting-left-nonuniform}
 \end{align}
 
 \paragraph{Boundary Value at $\bar{x}$:}
-As $i=I$, given the ``ghost node'' $x_{I+1}$, from \cref{eq:A-collected-interior}
+As $i=I$, given the ``ghost node'' $x_{I+1}$, and the assumption  $\Delta_{I,-} = \Delta_{I,+}$, from \cref{eq:A-collected-interior},
 \begin{align}
-\Delta \mathcal{A} v(x_I)&\approx \left(-\mu_I^{-} +\frac{\sigma_I^2}{\Delta_{+}+\Delta_{-}}\right)v_{I-1} + \left(\mu_I^{-} - \mu_I^{+}\frac{\Delta_{-}}{\Delta_{+}}-\frac{\sigma_I^2}{\Delta_{+}}\right)v_I + \left(\mu_I^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma_I^2}{\Delta_{+}+\Delta_{-}}\right)v_{I+1}\\
+\Delta_{I,+} \mathcal{A} v(x_I) = \Delta_{I,-} \mathcal{A} v(x_I)&\approx \left(-\mu_I^{-} +\frac{\sigma_I^2}{2 \Delta_{-}}\right)v_{I-1} + \left(\mu_I^{-} - \mu_I^{+}-\frac{\sigma_I^2}{\Delta_{I,-}}\right)v_I + \left(\mu_I^{+} + \frac{\sigma_I^2}{2 \Delta_{-}}\right)v_{I+1}\\
 \intertext{For the absorbing barrier, substitute for $v(x_{I+1}) = \bar{v}$,}
-\Delta \mathcal{A} v(x_I)&\approx \underbrace{\left(-\mu_I^{-} +\frac{\sigma_I^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv X_I} v_{I-1} + \underbrace{\left(\mu_I^{-} - \mu_I^{+}\frac{\Delta_{-}}{\Delta_{+}}-\frac{\sigma_I^2}{\Delta_{+}}\right)}_{\equiv Y_I} v_I + \underbrace{\overbrace{\left(\mu_I^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma_I^2}{\Delta_{+}+\Delta_{-}}\right)}^{\equiv Z_I}\bar{v}}_{\equiv b_I}\\
+&\approx \underbrace{\left(-\mu_I^{-} +\frac{\sigma_I^2}{2 \Delta_{-}}\right)}_{\equiv X_I} v_{I-1} + \underbrace{\left(\mu_I^{-} - \mu_I^{+}-\frac{\sigma_I^2}{\Delta_{I,-}}\right)}_{\equiv Y_I} v_I + \underbrace{\overbrace{\left(\mu_I^{+} + \frac{\sigma_I^2}{2 \Delta_{I,-}}\right)}^{\equiv Z_I}\bar{v}}_{\equiv b_I}\\
 \intertext{For a reflecting barrier, the boundary value $v'(\bar{x}) \approx \frac{v_{I+1}-v_I}{\Delta} = 0, \implies v_{I+1} = v_I$,}
-\Delta \mathcal{A} v(x_I)&\approx \underbrace{\left(-\mu_I^{-} +\frac{\sigma_I^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv X_I} v_{I-1} + \left(\underbrace{\left(\mu_I^{-} - \mu_I^{+}\frac{\Delta_{-}}{\Delta_{+}}-\frac{\sigma_I^2}{\Delta_{+}}\right)}_{\equiv Y_I} + \underbrace{\left(\mu_I^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma_I^2}{\Delta_{+}+\Delta_{-}}\right)}_{\equiv Z_I} \right) v_I 
+&\approx \underbrace{\left(-\mu_I^{-} +\frac{\sigma_I^2}{2 \Delta_{I,-}}\right)}_{\equiv X_I} v_{I-1} + \left(\underbrace{\left(\mu_I^{-} - \mu_I^{+}-\frac{\sigma_I^2}{\Delta_{I,-}}\right)}_{\equiv Y_I} + \underbrace{\left(\mu_I^{+} + \frac{\sigma_I^2}{2 \Delta_{I,-}}\right)}_{\equiv Z_I} \right) v_I \label{eq:reflecting-right-nonuniform}
 \end{align}
 \paragraph{Simple Case with $\mu(x) < 0$ and Reflecting Barrier}
-In the special case of $\mu(\bar{x}) < 0$, the upwind direction is trivial: $\mu^{-} = \mu$ and $\mu^{+} = 0$.  Specializing \cref{eq:X-non-uniform,eq:Y-non-uniform,eq:Z-non-uniform},
+In the special case of $\mu(\bar{x}) < 0$, the upwind direction is trivial: $\mu^{-} = \mu$ and $\mu^{+} = 0$.  Specializing \cref{eq:X-non-uniform,eq:Y-non-uniform,eq:Z-non-uniform,eq:reflecting-left-nonuniform,eq:reflecting-right-nonuniform}
 \begin{align}
-	X &= - \mu+ \frac{\sigma^{2}}{\Delta_{+}+\Delta_{-}}\label{eq:X-non-uniform-backwards} \\
-	Y &= \mu - \frac{\sigma^{2}}{\Delta_{+}}\label{eq:Y-non-uniform-backwards} \\
-	Z &= \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^{2}}{\Delta_{+}+\Delta_{-}}\label{eq:Z-non-uniform-backwards}
+	X_i &= - \mu_i+ \frac{\sigma_i^{2}}{\Delta_{i,+}+\Delta_{i,-}}\label{eq:X-non-uniform-backwards} \\
+	Y_i &= \mu_i - \frac{\sigma_i^{2}}{\Delta_{i,+}}\label{eq:Y-non-uniform-backwards} \\
+	Z_i &= \frac{\Delta_{i,-}}{\Delta_{i,+}}\frac{\sigma_i^{2}}{\Delta_{i,+}+\Delta_{i,-}}\label{eq:Z-non-uniform-backwards}
 \end{align}
-and the formula for the discretized operator is,
-\begin{align}
-	\Delta_{-} \mathcal{A} v(x_i)  &= \left(v_i-v_{i-1}\right)\mu + \sigma^2 \frac{\Delta_{-}v_{i+1} - (\Delta_{+}+\Delta_{-}) v_i + \Delta_{+}v_{i-1}}{\Delta_{+}(\Delta_{+}+\Delta_{-})},\quad \text{ for } i = 2,\ldots I-1\\
-	\intertext{With the reflecting barrier at $\underline{x}$ and $\bar{x}$,}
-	\Delta_{-} \mathcal{A} v(x_1) &= -\frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^{2}}{\Delta_{+}+\Delta_{-}}v_1 + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^{2}}{\Delta_{+}+\Delta_{-}} v_2\\
-\Delta_{-} \mathcal{A} v(x_I)&\approx -\left(\mu -\frac{\sigma^2}{\Delta_{-}+\Delta_{+}}\right) v_{I-1} + \left(\mu - \frac{\sigma^2}{\Delta_{+}+\Delta_{-}}\right) v_I 
-\end{align}
-
+%and the formula for the discretized operator is,
+%\begin{align}
+%	\Delta_{-} \mathcal{A} v(x_i)  &= \left(v_i-v_{i-1}\right)\mu + \sigma^2 \frac{\Delta_{-}v_{i+1} - (\Delta_{+}+\Delta_{-}) v_i + \Delta_{+}v_{i-1}}{\Delta_{+}(\Delta_{+}+\Delta_{-})},\quad \text{ for } i = 2,\ldots I-1\\
+%	\intertext{With the reflecting barrier at $\underline{x}$ and $\bar{x}$,}
+%	\Delta_{-} \mathcal{A} v(x_1) &= -\frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^{2}}{\Delta_{+}+\Delta_{-}}v_1 + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^{2}}{\Delta_{+}+\Delta_{-}} v_2\\
+%\Delta_{-} \mathcal{A} v(x_I)&\approx -\left(\mu -\frac{\sigma^2}{\Delta_{-}+\Delta_{+}}\right) v_{I-1} + \left(\mu - \frac{\sigma^2}{\Delta_{+}+\Delta_{-}}\right) v_I 
+%\end{align}
+Where $\Delta_{1,-} = \Delta_{1,+}$ and $\Delta_{I,+} = \Delta_{I,-}$ as required.
 
 \subsection{Stationary Distribution of Reflected Univariate Diffusions}
 Given a model without any birth/death/stopping, let the pdf of the distribution of $x$ be,
