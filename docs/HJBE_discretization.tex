@@ -24,7 +24,7 @@ The law of motion for capital in this setup is,
 	\rho v(k) &= \max_{c}\set{u(c) + \left(f(k) - \delta k - c\right)v'(k)}\label{eq:HJBE-neoclassical-growth}
 	\intertext{Assume an interior $c$ and envelope conditions, then taking the FOC of the choice is,}
 	u'(c) &= v'(k)
-	\intertext{If we assume a functional form for the utility, such as $u(c) = \frac{c^{1-\gamma}}{1-\gamma}$, and production $f(k)=Ak^\alpha$ then this can be inverted such that}
+	\intertext{Assume a functional form $u(c) = \frac{c^{1-\gamma}}{1-\gamma}$ for the utility and $f(k)=Ak^\alpha$ for production. Then the FOC can be inverted such that}
 	c &= \left(v'(k) \right)^{-\frac{1}{\gamma}}\label{eq:c-neoclassical-growth}
 	\intertext{And,}
 	u(c) &= \frac{\left(v'(k)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma}\label{eq:u-c-neoclassical-growth}
@@ -67,17 +67,17 @@ Further define the notations $\underline{k} \equiv k_1$, $\overline{k} \equiv k_
 	\intertext {Our finite difference approximation to the HJB equation \cref{eq:HJBE-neoclassical-growth-mu} is then}
 	\rho v(k_i) &= \frac{\left(v'(k_i)\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma} + \mu(k_i;v) v'(k_i)
 \end{align}
-\item Following the ``upwind scheme'', we will use the forwards approximation whenever there is a positive drift above the steady state level of capital $k^*$, and the backwards approximation when below $k^*$. 
 \end{itemize}
+ Following the ``upwind scheme'', we will use the forwards approximation whenever there is a positive drift above the steady state level of capital $k^*$, and the backwards approximation when below $k^*$. 
 
 \subsection{Iterating on a Linear System of Equations}
 This section solves the problem through a series of iterations on a linear system of equations.
-\paragraph{Initial Guess }We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for each consecutive iteration $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
+\paragraph{Iterative Method }We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for each consecutive iteration $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
 \begin{align}
 	\frac{v_i^{n+1}-v_i^{n}}{\Delta} + \rho v_i^{n+1} = u(c_i^n) + (v_i^{n+1})^{'}  \underbrace{\left[f(k_i) - \delta k_i - c_i^n\right]}_{\equiv \mu_i}\label{eq:fd-approx-capital}
 \end{align}
 
-Using both the forwards and backwards difference approximations \cref{eq:forward-diff} and \cref{eq:backward-diff}, find the consumption using \cref{eq:c-neoclassical-growth} and compute savings,
+Using both the forwards and backwards difference approximations \cref{eq:forward-diff} and \cref{eq:backward-diff}, find the consumption $c^n$ using \cref{eq:c-neoclassical-growth} and compute savings,
 \begin{align}
 \mu^n_{i,F} = f(k_i) - \delta k_i - \left({v_F^n}'(k_i) \right)^{-\frac{1}{\gamma}}\\
 \mu^n_{i,B} = f(k_i) - \delta k_i - \left({v_B^n}'(k_i) \right)^{-\frac{1}{\gamma}}
@@ -89,6 +89,13 @@ Depending upon the sign of the drift, a choice is made between using forward or 
 \end{align}
 
 Define the vectors $X, Y, Z \in \R^{I} $ such that 
+\begin{align}
+	X &= -\frac {\mu^{-} _B}{\Delta}\label{eq:X-delta} \\
+	Y &= -\frac {\mu^{+} _F}{\Delta} + \frac {\mu^{-} _B}{\Delta}\label{eq:Y-delta} \\
+	Z &= \frac {\mu^{+} _F}{\Delta}\label{eq:Z-delta}
+\end{align}
+
+For algebraic simplicity later on, multiply every term by  $\Delta$ and obtain 
 \begin{align}
 	\Delta X &= -({\mu^{n} _B})^{-}\label{eq:X} \\
 	\Delta Y &= -({\mu^{n} _F})^{+} + ({\mu^{n} _B})^{-}\label{eq:Y} \\
@@ -117,8 +124,7 @@ B^{n}v^{n+1}= {b^n}
 
 
 
-When $v^{n+1}$ is sufficiently close in value to $v^n$, the algorithm is complete. 
-
+When $v^{n+1}$ is sufficiently close in value to $v^n$, the algorithm is complete. Otherwise, update the value of $v^n$ and repeat the previous steps for the next iteration. 
 
 
 \subsection{Nonlinear System of Equations}
@@ -126,7 +132,7 @@ This section will focus on solving the problem directly as a nonlinear system of
 \begin{align}
 \rho v_i &= \frac{\left(v'_i\right)^{-\frac{1-\gamma}{\gamma}}}{1-\gamma} + \mu(k_i;v) v'_i
 \end{align}
-
+for every $k_i$, $i=1,2,...I$.
 
 \bibliography{etk-references}
 
