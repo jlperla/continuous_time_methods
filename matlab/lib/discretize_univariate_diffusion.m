@@ -6,7 +6,7 @@
 %Subject to reflecting barrier at x_min and x_max
 
 %Pass in the vector of the grid x, and the vectors of mu and sigma_2 at the nodes, and returns a sparse discretized operator.
-function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_states)
+function [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_states)
     if nargin < 4
         check_absorbing_states = true;
     end
@@ -14,8 +14,8 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
 
 	%Check if the grid is uniform
 	tol = 1E-10; %Tolerance for seeing if the grid is uniform
-	Delta_p = [diff(x)' (x(I)-x(I-1))]'; %(1) Find distances between grid points.
-    Delta_m = [x(2)-x(1) diff(x)']'; % \Delta_{i, -}
+	Delta_p = [diff(x)' (x(I)-x(I-1))]'; %(35) Find distances between grid points.
+    Delta_m = [x(2)-x(1) diff(x)']'; % %(34) \Delta_{i, -}
     if(check_absorbing_states) %In some circumstances, such as in optimal stopping problems, we can ignore these issues.
         assert(sigma_2(1) > 0 || mu(1) >= 0, 'Cannot jointly have both sigma = 0 or mu < 0 at x_min, or an absorbing state');
         assert(sigma_2(end) > 0 || mu(end) <= 0, 'Cannot jointly have both sigma = 0 or mu > 0 at x_max, or an absorbing state');
@@ -42,18 +42,16 @@ function A = discretize_univariate_diffusion(x, mu, sigma_2, check_absorbing_sta
         % For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
 		mu_m = min(mu,0); %General notation of plus/minus.
 		mu_p = max(mu,0); 		
-		X = - mu_m + sigma_2 ./ (Delta_p + Delta_m); %(28)
-		Y = - mu_p .* (Delta_m ./ Delta_p) + mu_m - sigma_2 ./ Delta_p; % (29)
-		Z =  mu_p .* Delta_m ./ Delta_p + (sigma_2 .* Delta_m ./ Delta_p)./(Delta_p + Delta_m); % (30)
+		X = - mu_m + sigma_2 ./ (Delta_p + Delta_m); %(31)
+		Y = - mu_p .* (Delta_m ./ Delta_p) + mu_m - sigma_2 ./ Delta_p; % (32)
+		Z =  mu_p .* Delta_m ./ Delta_p + (sigma_2 .* Delta_m ./ Delta_p)./(Delta_p + Delta_m); % (33)
 		
 		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
-		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is the same as one for uniform grid case.  Corners will require adjustment    
+		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (36) interior is the same as one for uniform grid case.  Corners will require adjustment    
 		
 		%Manually adjust the boundary values at the corners.
-		A(1,1) = Y(1) + X(1); %Reflecting barrier, (10) and (5)
-		A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
-	
-
+		A(1,1) = Y(1) + X(1); %Reflecting barrier, top corner of (36)
+		A(I,I) = Y(I) + Z(I); %Reflecting barrier, bottom corner of (36)
 	end	
 end	
 
