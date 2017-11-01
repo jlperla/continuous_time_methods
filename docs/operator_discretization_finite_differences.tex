@@ -192,7 +192,7 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 0 & \cdots & \cdots & \cdots & 0 & X_I & Y_I+Z_I\\
 \end{bmatrix}\in\R^{I\times I}\label{eq:A-non-uniform}
 \end{align}
-In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write\footnote{\textbf{TODO:} Check what the multiplication should be by comparing to the equations at each node.  Note that $\mathbf{I}\Delta_{-}$ creates diagonal of $\Delta_{i,-}$
+In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write\footnote{Note that $\mathbf{I}\Delta_{-}$ creates diagonal of $\Delta_{i,-}$
 }
 \begin{align}
 \mathbf{I}\Delta_{-} \mathcal{A}v(\set{x_i}) &\approx A v\\
@@ -229,7 +229,7 @@ As $i =1$, given the ``ghost node'' $x_0$, we recall the assumption that $\Delta
 \end{align}
 
 \paragraph{Boundary Value at $\bar{x}$:}
-As $i=I$, given the ``ghost node'' $x_{I+1}$, and the assumption  $\Delta_{I,-} = \Delta_{I,+}$, from \cref{eq:A-collected-interior},
+As $i=I$, given the ``ghost node'' $x_{I+1}$, and the assumption  $\Delta_{I,+} = \Delta_{I,-}$, from \cref{eq:A-collected-interior},
 \begin{align}
 \Delta_{I,+} \mathcal{A} v(x_I) = \Delta_{I,-} \mathcal{A} v(x_I)&\approx \left(-\mu_I^{-} +\frac{\sigma_I^2}{2 \Delta_{-}}\right)v_{I-1} + \left(\mu_I^{-} - \mu_I^{+}-\frac{\sigma_I^2}{\Delta_{I,-}}\right)v_I + \left(\mu_I^{+} + \frac{\sigma_I^2}{2 \Delta_{-}}\right)v_{I+1}\\
 \intertext{For the absorbing barrier, substitute for $v(x_{I+1}) = \bar{v}$,}
