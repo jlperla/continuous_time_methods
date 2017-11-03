@@ -74,10 +74,9 @@ Further define the notations $\underline{k} \equiv k_1$, $\overline{k} \equiv k_
 This section solves the problem through a series of iterations on a linear system of equations.
 \paragraph{Iterative Method }We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for each consecutive iteration $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
 \begin{align}
-	\frac{v_i^{n+1}-v_i^{n}}{\Delta} + \rho v_i^{n+1} = u(c_i^n) + (v_i^{n+1})^{'}  \underbrace{\left[f(k_i) - \delta k_i - c_i^n\right]}_{\equiv \mu_i}\label{eq:fd-approx-capital}
+\frac{v_i^{n+1}-v_i^{n}}{\Delta} + \rho v_i^{n+1} = u(c_i^n) + (v_i^{n+1})^{'}  \underbrace{\left[f(k_i) - \delta k_i - c_i^n\right]}_{\equiv \mu_i}\label{eq:fd-approx-capital}
 \end{align}
-
-Using both the forwards and backwards difference approximations \cref{eq:forward-diff} and \cref{eq:backward-diff}, find the consumption $c^n$ using \cref{eq:c-neoclassical-growth} and compute savings,
+Using both the forwards and backwards difference approximations \cref{eq:forward-diff} and \cref{eq:backward-diff}, find consumption levels $c_F^n$ and $c_B^n$ as given by \cref{eq:c-neoclassical-growth} and compute savings,
 \begin{align}
 \mu^n_{i,F} = f(k_i) - \delta k_i - \left({v_F^n}'(k_i) \right)^{-\frac{1}{\gamma}}\\
 \mu^n_{i,B} = f(k_i) - \delta k_i - \left({v_B^n}'(k_i) \right)^{-\frac{1}{\gamma}}
@@ -85,7 +84,7 @@ Using both the forwards and backwards difference approximations \cref{eq:forward
 
 Depending upon the sign of the drift, a choice is made between using forward or backward differences. Let $\bold{1}_{\{ \cdot \}}$ be an indicator function\footnote{For now, assume that if the case $\mu_{F}>0$  and $\mu_{B}<0$ should arise, take $\bold{1}_{\{ \mu_{i,F} > 0\}} $ to be 1 and $\bold{1}_{ \{\mu_{i,B} < 0\}}\ $ to be 0.}and  $\bar{v_i}' $ be the derivative at the steady state, given in this example by $\bar{v_i}' = (f(k_i)-\delta k_i)^{-\gamma}$. Then the approximation of the derivative is 
 \begin{align}
-{v_i^n}'={v_{i,F}^n}'\bold{1}_{\{ \mu_{i,F} > 0\}}+{v_{i,B}^n}\bold{1}_{\{ \mu_{i,B}<0 \}}+{\bar{v}_i^n}'\bold{1}_{\{ \mu_{i,F}<0<\mu_{i,B} \}}
+{v_i^n}'={v_{i,F}^n}'\bold{1}_{\{ \mu_{i,F} > 0\}}+{v_{i,B}^n}\bold{1}_{\{ \mu_{i,B}<0 \}}+{\bar{v}_i^n}'\bold{1}_{\{ \mu_{i,F}<0<\mu_{i,B} \}}\label{eq:dv-upwind}
 \end{align}
 
 Define the vectors $X, Y, Z \in \R^{I} $ such that 
@@ -111,13 +110,13 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 \vdots & &\ddots & \ddots & \ddots & \ddots  & \vdots \\
 \vdots & & & \ddots & X_{I-1} & Y_{I-1}  & Z_{I-1} \\
 0 & \cdots & \cdots & \cdots & 0 & X_I & Y_I\\
-\end{bmatrix}\in\R^{I\times I}\label{eq:A}\\
+\end{bmatrix}\in\R^{I\times I}\label{eq:A}
 \end{align}
 
-
-We can then write as a system of equations in matrix form and solve for $v^{n+1}$ using \cref{eq:c-neoclassical-growth}
+By substituting the approximation ${v^{n}}'$ found in \cref{eq:dv-upwind} into equation \cref{eq:c-neoclassical-growth}, define the utility vector
 \begin{align}
 u(c^n) &\equiv u\left(\left({v^n}'\right)^{-\frac{1}{\gamma}}\right)\\
+\intertext{We can then write as a system of equations in matrix form and solve for $v^{n+1}$}
 B^n &\equiv (\Delta \rho + 1)I - A^n\\
 b^n &\equiv \Delta u(c^n) + v^n\\
 B^{n}v^{n+1} &= {b^n}
