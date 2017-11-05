@@ -97,7 +97,7 @@ function [f, success] = stationary_distribution_discretized_univariate(A, x, set
          end
         
         Delta = x(2) - x(1);         
-        [f,flag,relres,iter] = lsqr([A';Delta * ones(1,I)], sparse([zeros(I,1);Delta * 1]), tolerance, max_iterations, preconditioner, [], initial_guess); %Linear least squares.  Note tolerance changes with I
+        [f,flag,relres,iter] = lsqr([A';ones(1,I)], sparse([zeros(I,1);1]), tolerance, max_iterations, preconditioner, [], initial_guess); %Linear least squares.  Note tolerance changes with I
         if(flag==0)
             success = true;
         else

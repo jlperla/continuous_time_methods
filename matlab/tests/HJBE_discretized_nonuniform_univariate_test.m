@@ -32,7 +32,7 @@ function simple_value_function_test(testCase)
     
     %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.
     [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho);
-%    dlmwrite(strcat(mfilename, '_1_v_output.csv'), v, 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_1_v_output.csv'), v, 'precision', tolerances.default_csv_precision); %Uncomment to save again
     v_check = dlmread(strcat(mfilename, '_1_v_output.csv'));    
     verifyTrue(testCase,norm(v - v_check, Inf) < tolerances.test_tol, 'v value no longer matches');
     verifyTrue(testCase, success==true, 'unsuccesful');

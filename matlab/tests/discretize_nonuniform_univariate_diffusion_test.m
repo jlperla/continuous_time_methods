@@ -25,9 +25,9 @@ function zero_drift_test(testCase)%Simple and small with zero drift with uniform
     x_max = 1;
     I = 5;
     x = logspace(log10(x_min),log10(x_max),I)';
-    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+    [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
 
-%    dlmwrite(strcat(mfilename, '_1_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_1_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
     A_check = dlmread(strcat(mfilename, '_1_A_output.csv'));    
     
     verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');

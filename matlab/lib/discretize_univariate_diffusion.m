@@ -22,14 +22,14 @@ function [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu, sigma_2,
     end
 	if(abs(min(Delta_p) - max(Delta_p)) < tol) %i.e. a uniform grid within tolerance
 		Delta = x(2)-x(1); % (1)
-		% Delta_2 = Delta^2; %Just squaring the Delta for the second order terms in the finite differences.
+		Delta_2 = Delta^2; %Just squaring the Delta for the second order terms in the finite differences.
 
 		%% Construct sparse A matrix with uniform grid
 		mu_m = min(mu,0); %General notation of plus/minus.
 		mu_p = max(mu,0); 		
-		X = - mu_m + sigma_2/(2*Delta); % (7)
-		Y = - mu_p + mu_m - sigma_2/Delta; % (8)
-		Z =  mu_p + sigma_2/(2*Delta); %(9)
+		X = - mu_m/Delta + sigma_2/(2*Delta_2); % (7)
+		Y = - mu_p/Delta + mu_m/Delta - sigma_2/Delta_2; % (8)
+		Z =  mu_p/Delta + sigma_2/(2*Delta_2); %(9)
 		
 		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
 		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (10) interior is correct.  Corners will require adjustment    
@@ -42,9 +42,9 @@ function [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu, sigma_2,
         % For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
 		mu_m = min(mu,0); %General notation of plus/minus.
 		mu_p = max(mu,0); 		
-		X = - mu_m + sigma_2 ./ (Delta_p + Delta_m); %(31)
-		Y = - mu_p .* (Delta_m ./ Delta_p) + mu_m - sigma_2 ./ Delta_p; % (32)
-		Z =  mu_p .* Delta_m ./ Delta_p + (sigma_2 .* Delta_m ./ Delta_p)./(Delta_p + Delta_m); % (33)
+		X = - mu_m./Delta_m + sigma_2 ./(Delta_m.*(Delta_p + Delta_m)); %(31)
+		Y = - mu_p./Delta_p + mu_m./Delta_m - sigma_2./(Delta_p .* Delta_m); % (32)
+		Z =  mu_p./Delta_p + sigma_2 ./ (Delta_p.*(Delta_p + Delta_m)); % (33)
 		
 		%Creates a tri-diagonal matrix.  See the sparse matrix tricks documented below
 		A = spdiags([[X(2:I); NaN] Y [NaN; Z(1:I - 1)]], [-1 0 1], I,I);% (36) interior is the same as one for uniform grid case.  Corners will require adjustment    

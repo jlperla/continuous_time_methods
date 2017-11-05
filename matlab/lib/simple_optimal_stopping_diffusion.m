@@ -66,8 +66,8 @@ function [results] = simple_optimal_stopping_diffusion(p, settings)
 
 	u = u_x(x);
 	S = S_x(x);
-    B = Delta * rho * speye(I) - A; %(6)
-    q = -u * Delta + B*S; %(8)
+    B = rho * speye(I) - A; %(6)
+    q = -u + B*S; %(8)
 
 	%% Solve the LCP version of the model 
     %Choose based on the method type.

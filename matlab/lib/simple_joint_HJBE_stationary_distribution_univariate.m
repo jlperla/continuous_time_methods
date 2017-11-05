@@ -1,7 +1,6 @@
 %Takes the discretized operator A, the grid x, and finds the stationary distribution f.
 function [v, f, success] = simple_joint_HJBE_stationary_distribution_univariate(A, x, u, rho, settings)
     I = length(x);
-    Delta_m = [x(2)-x(1) diff(x)']'; % \Delta_{i, -}
     if nargin < 5
        settings.default = true; %Just creates as required.
     end
@@ -40,8 +39,8 @@ function [v, f, success] = simple_joint_HJBE_stationary_distribution_univariate(
      
      
     %Create the joint system
-    y = sparse([diag(Delta_m) * u; sparse(I,1); 1]); %(66)
-    X = [(diag(Delta_m) * rho - A) sparse(I,I); sparse(I,I) A'; sparse(1,I) ones(1,I)]; %(67).  Only supporting simple sum.
+    y = sparse([u; sparse(I,1); 1]); %(66)
+    X = [(rho * eye(I) - A) sparse(I,I); sparse(I,I) A'; sparse(1,I) ones(1,I)]; %(67).  Only supporting simple sum.
 
     if(settings.sparse == true)
          if(strcmp(settings.preconditioner,'jacobi'))
