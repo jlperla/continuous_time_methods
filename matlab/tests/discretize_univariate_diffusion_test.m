@@ -72,7 +72,7 @@ function negative_drift_uniform_grid_test(testCase)
 
     
     %To save the file again, can uncomment this.
-    [indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
+    %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
     %%dlmwrite(strcat(mfilename, '_3_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
     
     %Load and check against the sparse matrix file.

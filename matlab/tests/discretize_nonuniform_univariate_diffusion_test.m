@@ -28,7 +28,7 @@ function zero_drift_test(testCase)%Simple and small with zero drift with uniform
     [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
 
     %dlmwrite(strcat(mfilename, '_1_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
-    A_check = dlmread(strcat(mfilename, '_1_A_output.csv'));    
+    %A_check = dlmread(strcat(mfilename, '_1_A_output.csv'));    
     
     verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
     
@@ -38,6 +38,31 @@ function zero_drift_test(testCase)%Simple and small with zero drift with uniform
     verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
     verifyTrue(testCase,is_negative_definite(testCase, A), 'Intensity Matrix is not positive definite');
 end    
+function zero_drift_for_large_sample_test(testCase) 
+    tolerances = testCase.TestData.tolerances;
+    
+    mu_x = @(x) zeros(numel(x),1);
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    x_min = 0.01;
+    x_max = 1;
+    I = 1000;  % It gets very slow when sample size is getting bigger.
+    x = logspace(log10(x_min),log10(x_max),I)';
+    [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+
+    %To save the file again, can uncomment this.
+    %dlmwrite(strcat(mfilename, '_3_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    %A_check = dlmread(strcat(mfilename, '_3_A_output.csv'));    
+    
+    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
+    
+    %The following are worth testing for almost every matrix in the test suit.
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+    verifyTrue(testCase,is_negative_definite(testCase, A), 'Intensity Matrix is not positive definite');
+end
+
 function negative_drift_uniform_grid_test(testCase)
     tolerances = testCase.TestData.tolerances;
     
@@ -53,10 +78,10 @@ function negative_drift_uniform_grid_test(testCase)
     
     %To save the file again, can uncomment this.
     %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
-    %dlmwrite(strcat(mfilename, '_3_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_4_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
     
     %Load and check against the sparse matrix file.
-    A_check = spconvert(dlmread(strcat(mfilename, '_3_A_output.csv')));
+    A_check = spconvert(dlmread(strcat(mfilename, '_4_A_output.csv')));
     verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
     
     %The following are worth testing for almost every matrix in the test suit.
@@ -64,6 +89,114 @@ function negative_drift_uniform_grid_test(testCase)
     verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
     verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
 end
+
+function positive_drift_uniform_grid_test(testCase)
+    tolerances = testCase.TestData.tolerances;
+    
+    mu_x = @(x) ones(numel(x),1);
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    x_min = 0.01;
+    x_max = 1;
+    I = 1001;
+    x = logspace(log10(x_min),log10(x_max),I)';
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+
+    
+    %To save the file again, can uncomment this.
+    %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_5_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    
+    %Load and check against the sparse matrix file.
+    A_check = spconvert(dlmread(strcat(mfilename, '_5_A_output.csv')));
+    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
+    
+    %The following are worth testing for almost every matrix in the test suit.
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+end
+
+function monotonically_increasing_mu_test(testCase)    % mu is monotonically increasing in x with mu(x_min)<0 and mu(x_max)>0
+    tolerances = testCase.TestData.tolerances;
+    
+    mu_x = @(x) (x - 0.5);
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    x_min = 0.01;
+    x_max = 1;
+    I = 5;
+    x = logspace(log10(x_min),log10(x_max),I)';
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+  
+    %To save the file again, can uncomment this.
+    %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_6_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    
+    %Load and check against the sparse matrix file.
+    A_check = spconvert(dlmread(strcat(mfilename, '_6_A_output.csv')));
+    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
+    
+    %The following are worth testing for almost every matrix in the test suit.
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+end    
+
+
+function monotonically_decreasing_mu_test(testCase)    % mu is monotonically increasing in x with mu(x_min)<0 and mu(x_max)>0
+    tolerances = testCase.TestData.tolerances;
+    
+    mu_x = @(x) (x - 0.5) * (-1);
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    x_min = 0.01;
+    x_max = 1;
+    I = 5;
+    x = logspace(log10(x_min),log10(x_max),I)';
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+  
+    %To save the file again, can uncomment this.
+    %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_7_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    
+    %Load and check against the sparse matrix file.
+    A_check = spconvert(dlmread(strcat(mfilename, '_7_A_output.csv')));
+    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
+    
+    %The following are worth testing for almost every matrix in the test suit.
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+end    
+
+function concave_mu_test(testCase)     % mu is concave in x with mu(x_min)<0, mu(x_max)<0 and mu(x)>0 for some x
+    tolerances = testCase.TestData.tolerances;
+    
+    mu_x = @(x) (-(x - 0.5).^2 + 0.1);
+    sigma_bar = 0.1;
+    sigma_2_x = @(x) (sigma_bar*x).^2;
+    x_min = 0.01;
+    x_max = 1;
+    I = 5;
+    x = logspace(log10(x_min),log10(x_max),I)';
+    A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
+  
+    %To save the file again, can uncomment this.
+    %[indices_i, indices_j, values_ij] = find(A); %Uncomment to save again
+    %dlmwrite(strcat(mfilename, '_8_A_output.csv'), [indices_i indices_j values_ij], 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    
+    %Load and check against the sparse matrix file.
+    A_check = spconvert(dlmread(strcat(mfilename, '_8_A_output.csv')));
+    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
+    
+    %The following are worth testing for almost every matrix in the test suit.
+    verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
+    verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
+    verifyTrue(testCase,isbanded(A,1,1), 'Intensity Matrix is not tridiagonal');
+end
+
+
 
 %These are utility functions for testing returned matrices.
 function result = is_stochastic_matrix(testCase, A)
