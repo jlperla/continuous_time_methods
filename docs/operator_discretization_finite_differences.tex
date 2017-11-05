@@ -69,9 +69,9 @@ In general, a reflection for a large $\bar{x}$ and small $\underline{x}$ is the 
 \subsection{Upwind Finite Difference Discretization for $A$ with a Uniform Grid}
 Denote the vector of drifts and variances as $\mu \equiv \set{\mu(x_i)}_{i=1}^I$ and $\sigma^2 \equiv \set{\sigma(x_i)^2}_{i=1}^I$.  For a uniform grid with $\Delta \equiv x_{i+1} - x_i$.  Define the vectors, $X,Y,Z \in \R^I$ such that,
 \begin{align}
-	X &= - \mu^{-}+ \frac{\sigma^{2}}{2 \Delta}\label{eq:X} \\
-	Y &= - \mu^{+} + \mu^{-}- \frac{\sigma^{2}}{\Delta}\label{eq:Y} \\
-	Z &= \mu^{+} + \frac{\sigma^{2}}{2 \Delta}\label{eq:Z}
+	X &= - \frac{\mu^{-}}{\Delta}+ \frac{\sigma^{2}}{2 \Delta^2}\label{eq:X} \\
+	Y &= - \frac{\mu^{+}}{\Delta} + \frac{\mu^{-}}{\Delta^2}- \frac{\sigma^{2}}{\Delta}\label{eq:Y} \\
+	Z &= \frac{\mu^{+}}{\Delta} + \frac{\sigma^{2}}{2 \Delta^2}\label{eq:Z}
 \end{align}
 
 With these, the matrix $A$ is constructed as.
@@ -86,7 +86,7 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 \end{bmatrix}\in\R^{I\times I}\label{eq:A}\\
 b &\equiv \begin{bmatrix}(1-R_{\underline{x}})X_1\underline{v} \\ 0 \\ \vdots \\ 0 \\  (1-R_{\bar{x}})Z_I\bar{v}\end{bmatrix}^T\in\R^I \label{eq:b}
 \intertext{where,}
-\mathcal{A}v(\set{x_i}) &\approx \frac{A}{\Delta} v + \frac{b}{\Delta}
+\mathcal{A}v(\set{x_i}) &\approx A v + b
 \end{align}
 
 Note that the special cases for the $1$st and $I$th row correspond to the boundary values and are adjusted depending on the type of boundary value. Also, note that the $b$ vector is all zeros if the boundary values are reflective and/or the matched value $\bar{v}$ or $\underline{v}$ is $0$).
@@ -128,11 +128,11 @@ As $i=I$, given the ``ghost node'' $x_{I+1}$, from \cref{eq:A-collected-interior
 \Delta \mathcal{A} v(x_I)&\approx \underbrace{\left(-\mu_I^{-} +\frac{\sigma_I^2}{2\Delta}\right)}_{\equiv X_I} v_{I-1} + \left(\underbrace{\left(\mu_I^{-} - \mu_I^{+}-\frac{\sigma_I^2}{\Delta}\right)}_{\equiv Y_I} + \underbrace{\left(\mu_I^{+} + \frac{\sigma_I^2}{2\Delta}\right)}_{\equiv Z_I} \right) v_I 
 \end{align}
 \paragraph{Simple Case with $\mu(x) < 0$ and Reflecting Barrier}
-In the special case of $\mu(\bar{x}) < 0$, the upwind direction is trivial: $\mu^{-} = \mu$ and $\mu^{+} = 0$.  Specializing \cref{eq:X,eq:Y,eq:Z},
+In the special case of $\mu(\bar{x}) < 0$, the upwind direction is trivial: $\frac{\mu^{-}}{\Delta} = \mu$ and $\mu^{+} = 0$.  Specializing \cref{eq:X,eq:Y,eq:Z},
 \begin{align}
-	X &= - \mu+ \frac{\sigma^{2}}{2 \Delta}\label{eq:X-backwards} \\
-	Y &= \mu - \frac{\sigma^{2}}{\Delta}\label{eq:Y-backwards} \\
-	Z &= \frac{\sigma^{2}}{2 \Delta}\label{eq:Z-backwards}
+	X &= - \frac{\mu}{\Delta}+ \frac{\sigma^{2}}{2 \Delta^2}\label{eq:X-backwards} \\
+	Y &= \frac{\mu}{\Delta} - \frac{\sigma^{2}}{\Delta^2}\label{eq:Y-backwards} \\
+	Z &= \frac{\sigma^{2}}{2 \Delta^2}\label{eq:Z-backwards}
 \end{align}
 and the formula for the discretized operator is,
 \begin{align}
@@ -151,18 +151,21 @@ Based on the recommendation of second derivative choice from \url{http://www.pri
 \begin{equation}
 v_i^{''} = \frac{\Delta_{-}v_{i+1} - (\Delta_{-}+\Delta_{+})v_i+\Delta_{+}v_{i-1}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})\Delta_{-}\Delta_{+}} \label{eq:v''}
 \end{equation}
-Then we can define $X$, $Y$ and $Z$ as 
+Then we can define $X$, $Y$ and $Z$ (after simplification) as 
 \begin{align}
-X &= -\frac{\mu^{-}}{\Delta_{-}} + \frac{\sigma^2}{2}\frac{\frac{\Delta_{+}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})}}{\Delta_{+}\Delta_{-}}\\
-Y &= -\frac{\mu^{+}}{\Delta_{+}}+\frac{\mu^{-}}{\Delta_{-}} -\frac{\sigma^2}{\Delta_{+}\Delta_{-}}\\
-Z &= \frac{\mu^{+}}{\Delta_{+}} + \frac{\sigma^2}{2}\frac{\frac{\Delta_{-}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})}}{\Delta_{+}\Delta_{-}}
+X% &= -\frac{\mu^{-}}{\Delta_{-}} + \frac{\sigma^2}{2}\frac{\frac{\Delta_{+}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})}}{\Delta_{+}\Delta_{-}}\\
+&= -\frac{\mu^{-}}{\Delta_{-}} +\frac{\sigma^{2}}{\Delta_{-}(\Delta_{+}+\Delta_{-})}\label{eq:X-non-uniform}\\
+Y &= -\frac{\mu^{+}}{\Delta_{+}}+\frac{\mu^{-}}{\Delta_{-}} -\frac{\sigma^2}{\Delta_{+}\Delta_{-}}\label{eq:Y-non-uniform}\\
+Z %&= \frac{\mu^{+}}{\Delta_{+}} + \frac{\sigma^2}{2}\frac{\frac{\Delta_{-}}{\frac{1}{2}(\Delta_{+}+\Delta_{-})}}{\Delta_{+}\Delta_{-}}\\
+&= \frac{\mu^{+}}{\Delta_{+}} + \frac{\sigma^{2}}{\Delta_{+}(\Delta_{+}+\Delta_{-})}\label{eq:Z-non-uniform}
 \end{align}
-For the stability of numerical calculation, we can multiply every term in $A$ by $\Delta_{-}$ to obtain $\Delta_{-}A$. So we can redefine $X, Y $and $Z$ as 
-\begin{align}
-X &= -\mu^{-} + \frac{\sigma^2}{(\Delta_{+}+\Delta_{-})} \label{eq:X-non-uniform}\\
-Y &= -\mu^{+}\frac{\Delta_{-}}{\Delta_{+}}+\mu^{-} -\frac{\sigma^2}{\Delta_{+}} \label{eq:Y-non-uniform}\\
-Z &=\mu^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^2}{(\Delta_{+}+\Delta_{-})} \label{eq:Z-non-uniform}
-\end{align}
+%Turned off.  More trouble than worth
+%For the stability of numerical calculation, we can multiply every term in $A$ by $\Delta_{-}$ to obtain $\Delta_{-}A$. So we can redefine $X, Y $and $Z$ as 
+%\begin{align}
+%X &= -\mu^{-} + \frac{\sigma^2}{(\Delta_{+}+\Delta_{-})} \label{eq:X-non-uniform}\\
+%Y &= -\mu^{+}\frac{\Delta_{-}}{\Delta_{+}}+\mu^{-} -\frac{\sigma^2}{\Delta_{+}} \label{eq:Y-non-uniform}\\
+%Z &=\mu^{+}\frac{\Delta_{-}}{\Delta_{+}} + \frac{\Delta_{-}}{\Delta_{+}}\frac{\sigma^2}{(\Delta_{+}+\Delta_{-})} \label{eq:Z-non-uniform}
+%\end{align}
 We treat $\Delta_{1, -} = \Delta_{1, +}$ and $\Delta_{I, +} = \Delta_{I, -}$, due to ghost points, $x_0$ and $x_{I+1}$ on both boundaries.  \\
 %This isn't really well define in terms of matrix multiplication/etc.
 %In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write 
@@ -192,17 +195,17 @@ X_2 & Y_2 & Z_2 & 0 & \ddots& & \vdots \\
 0 & \cdots & \cdots & \cdots & 0 & X_I & Y_I+Z_I\\
 \end{bmatrix}\in\R^{I\times I}\label{eq:A-non-uniform}
 \end{align}
-In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write\footnote{Note that $\mathbf{I}\Delta_{-}$ creates diagonal of $\Delta_{i,-}$
-}
+In terms of the structure of \ref{eq:A} and \ref{eq:b}, we can similarly write
+%\footnote{Note that $\mathbf{I}\Delta_{-}$ creates diagonal of $\Delta_{i,-}$}
 \begin{align}
-\mathbf{I}\Delta_{-} \mathcal{A}v(\set{x_i}) &\approx A v\\
-\intertext{However, this can be more succintly written with the definition,}
-\mathbf{\Delta}_{-} &\equiv \mathbf{I}\Delta_{-} = \text{diag}(\Delta_{-})\\
-\mathbf{\Delta}_{+} &\equiv \mathbf{I}\Delta_{+} = \text{diag}(\Delta_{+})\\
-\intertext{With this and the above,}
-\mathbf{\Delta}_{-} \mathcal{A}v(\set{x_i}) &\approx A v
-\intertext{Or,}
-\mathcal{A}v(\set{x_i}) &\approx \mathbf{\Delta}_{-}^{-1} A v
+%\mathbf{I}\Delta_{-} \mathcal{A}v(\set{x_i}) &\approx A v\\
+%\intertext{However, this can be more succintly written with the definition,}
+%\mathbf{\Delta}_{-} &\equiv \mathbf{I}\Delta_{-} = \text{diag}(\Delta_{-})\\
+%\mathbf{\Delta}_{+} &\equiv \mathbf{I}\Delta_{+} = \text{diag}(\Delta_{+})\\
+%\intertext{With this and the above,}
+%\mathbf{\Delta}_{-} \mathcal{A}v(\set{x_i}) &\approx A v
+%\intertext{Or,}
+\mathcal{A}v(\set{x_i}) &\approx  A v
 \end{align}
 
 
@@ -240,9 +243,9 @@ As $i=I$, given the ``ghost node'' $x_{I+1}$, and the assumption  $\Delta_{I,+} 
 \paragraph{Simple Case with $\mu(x) < 0$ and Reflecting Barrier}
 In the special case of $\mu(\bar{x}) < 0$, the upwind direction is trivial: $\mu^{-} = \mu$ and $\mu^{+} = 0$.  Specializing \cref{eq:X-non-uniform,eq:Y-non-uniform,eq:Z-non-uniform,eq:reflecting-left-nonuniform,eq:reflecting-right-nonuniform}
 \begin{align}
-	X_i &= - \mu_i+ \frac{\sigma_i^{2}}{\Delta_{i,+}+\Delta_{i,-}}\label{eq:X-non-uniform-backwards} \\
-	Y_i &= \mu_i - \frac{\sigma_i^{2}}{\Delta_{i,+}}\label{eq:Y-non-uniform-backwards} \\
-	Z_i &= \frac{\Delta_{i,-}}{\Delta_{i,+}}\frac{\sigma_i^{2}}{\Delta_{i,+}+\Delta_{i,-}}\label{eq:Z-non-uniform-backwards}
+	X_i &= - \frac{\mu_i}{\Delta_{i,-}}+ \frac{\sigma_i^{2}}{\Delta_{i,-}(\Delta_{i,+}+\Delta_{i,-})}\label{eq:X-non-uniform-backwards} \\
+	Y_i &= \frac{\mu_i}{\Delta_{i,-}} - \frac{\sigma_i^{2}}{\Delta_{i,+}\Delta_{i,-}}\label{eq:Y-non-uniform-backwards} \\
+	Z_i &= \frac{\sigma_i^{2}}{\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}\label{eq:Z-non-uniform-backwards}
 \end{align}
 %and the formula for the discretized operator is,
 %\begin{align}
@@ -262,18 +265,18 @@ Given a model without any birth/death/stopping, let the pdf of the distribution 
 	0 &= \mathcal{A}^*f(x)\\
 	1 &= \int_0^1 f(x) \diff x
 	\intertext{If the linear operator $\mathcal{A}$ is discretized as a matrix $A$, then it can be shown that the discretized $\mathcal{A}^*$ is the transpose $A^T$.  To find the discretized PDF of the distribution, $f \in \R^I$, solve}
-	0 &= \frac{A^T}{\Delta} f\label{eq:linear-operator-stationary}\\
+	0 &= A^T f\label{eq:linear-operator-stationary}\\
 	1 &= \omega \cdot f\label{eq:linear-operator-sum}
 \end{align}
 where $\omega \in \R^I$ is a quadrature weight to ensure it integrates to $1$.  For crude simplicity, could use a vector of $1$s.  Alternatively, $\omega$ could be trapezoidal or simpsons rule weights (depending on if the $x$ grid is uniform).
-\paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} is an eigenvalue problem.  Therefore, we can multiply by $\Delta$ (which does not change problem for a $0$ eigenvalue) and then the stationary distribution can be found as the eigenvector of $A^T$ associated with the zero eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
+\paragraph{As an Eigenvalue Problem} Note that \cref{eq:linear-operator-stationary} is an eigenvalue problem.  Therefore, we can find the stationary distribution can be found as the eigenvector of $A^T$ associated with the zero eigenvalue, and rescales to ensure \cref{eq:linear-operator-sum} holds.  This is useful since $A^T$ is always singular, and hence \cref{eq:linear-operator-stationary} cannot be solved as a simple linear system.
 
 \paragraph{As a Linear System} Alternatively, define the following, after multiplying \cref{eq:linear-operator-stationary,eq:linear-operator-sum} by $\Delta$ and stacking,
 \begin{align}
-y &\equiv \begin{bmatrix}0 \\ \vdots \\ 0 \\ \Delta\end{bmatrix}\in\R^{I + 1}\\
+y &\equiv \begin{bmatrix}0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{I + 1}\\
 X &\equiv \begin{bmatrix}
 	A^T\\
-	\Delta \omega
+	\omega
 \end{bmatrix}\in \R^{(I+1)\times I}
 \intertext{Then, the stationary distribution, $f\in\R^I$, solves the following linear system}
 X f &= y\label{eq:linear-system}
@@ -285,34 +288,36 @@ Note that this is an overdetermined system, but the rank of $X$ is $I$ rather th
 \end{align}
 
 \subsection{Solving Simple Time-Independent Linear HJBE}\label{sec:simple-HJBE}
+The following works for either a uniform or nonuniform grid.
+
 In the simple case of an uncontrolled linear stochastic process with no optimal stopping, if an agent has payoff $u(x)$ with discounting $\rho > 0$, then the following HJBE determines the value
 \begin{align}
 	\rho v(x) &= u(x) + \mathcal{A}v(x)\\
 	\intertext{subject to the appropriate boundary conditions.  Discretizing the grid, let $u \equiv \set{u(x_i)}_{i=1}^I\in\R^I$, then the discretized version is,}
-	\Delta \rho v &= \Delta u + A v\\
+	\rho v &= u + A v\\
 	\intertext{Or,}
-	(\rho\Delta  \mathbf{I} - A) v &= \Delta u\label{eq:discretized-linear-HJBE}
+	(\rho  \mathbf{I} - A) v &= u\label{eq:discretized-linear-HJBE}
 	\intertext{This simple linear system can be solved for $v$.  In principle, the HJBE and the KFE could be solved at the same time (here they are uncoupled, but in principle there could be direct connections in a nonlinear setup) by stacking $q \equiv \begin{bmatrix}v & f\end{bmatrix}^T\in\R^{2 I}$ \cref{eq:discretized-linear-HJBE,eq:KFE-least-squares}.  Define,}
-y &\equiv \begin{bmatrix}\Delta u \\0 \\ \vdots \\ 0 \\ \Delta 1\end{bmatrix}\in\R^{2 I + 1}\\
+y &\equiv \begin{bmatrix}u \\0 \\ \vdots \\ 0 \\ 1\end{bmatrix}\in\R^{2 I + 1}\\
 X &\equiv \begin{bmatrix}
-	\rho \Delta  \mathbf{I} - A & \mathbf{0}_{I\times I}\\
+	\rho \mathbf{I} - A & \mathbf{0}_{I\times I}\\
 	\mathbf{0}_{I\times I} & A^T\\
-	\mathbf{0}_{1\times I} & \Delta \omega
+	\mathbf{0}_{1\times I} & \omega
 \end{bmatrix}\in \R^{(2 I+1)\times 2 I}	
 \intertext{Then, the joint solution to the problems is a $q$,}
 X q &= y
 	 \intertext{As above, we would expect $X$ to have only rank $2 I$, and hence this is an overdetermined problem with a unique solution.  Alternatively we could solve it as a linear least squares problem,}
 	\min_{q}& \norm{y - X q}^2\label{eq:KFE-HJBE-least-squares}	
 \end{align}
-
-\subsection{Solving Simple Time-Independent Linear HJBE with a Nonuniform Grid}\label{sec:simple-HJBE-nonuniform}
-To derive the equivalent to \cref{eq:discretized-linear-HJBE}
-\begin{align}
-\mathbf{\Delta}_{-} \rho v &= \mathbf{\Delta}_{-} u + A v\\
-\text{or,}
-( \rho \mathbf{\Delta}_{-} - A) v &= \mathbf{\Delta}_{-} u\label{eq:discretized-linear-HJBE-non-uniform}
-\end{align}
-The equation in \cref{eq:discretized-linear-HJBE-non-uniform} can be solved for $v$ on the non-uniform grid.
+%
+%\subsection{Solving Simple Time-Independent Linear HJBE with a Nonuniform Grid}\label{sec:simple-HJBE-nonuniform}
+%To derive the equivalent to \cref{eq:discretized-linear-HJBE}
+%\begin{align}
+%\rho v &= u + A v\\
+%\text{or,}
+%( \rho \mathbf{\Delta}_{-} - A) v &= \mathbf{\Delta}_{-} u\label{eq:discretized-linear-HJBE-non-uniform}
+%\end{align}
+%The equation in \cref{eq:discretized-linear-HJBE-non-uniform} can be solved for $v$ on the non-uniform grid.
 
 \section{Time-Dependent Univariate Diffusions}\label{sec:time-dependent-univariate-diffusion}
 This section implements a version of \cref{sec:time-dependent-univariate-diffusion}, but where important parameters/settings/etc. vary with time.  In that case, the SDE is

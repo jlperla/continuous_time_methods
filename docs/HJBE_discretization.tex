@@ -88,18 +88,18 @@ Depending upon the sign of the drift, a choice is made between using forward or 
 \end{align}
 
 Define the vectors $X, Y, Z \in \R^{I} $ such that 
-%\begin{align}
-%	X &= -\frac {\mu^{-} _B}{\Delta}\label{eq:X-delta} \\
-%	Y &= -\frac {\mu^{+} _F}{\Delta} + \frac {\mu^{-} _B}{\Delta}\label{eq:Y-delta} \\
-%	Z &= \frac {\mu^{+} _F}{\Delta}\label{eq:Z-delta}
-%\end{align}
-%
-%For algebraic simplicity later on, multiply every term by  $\Delta$ and obtain 
 \begin{align}
-	X &= -({\mu^{n} _B})^{-}\label{eq:X} \\
-	Y &= -({\mu^{n} _F})^{+} + ({\mu^{n} _B})^{-}\label{eq:Y} \\
-	Z &= ({\mu^{n} _F})^{+}\label{eq:Z}
+	X &= -\frac {\mu^{-} _B}{\Delta}\label{eq:X-delta} \\
+	Y &= -\frac {\mu^{+} _F}{\Delta} + \frac {\mu^{-} _B}{\Delta}\label{eq:Y-delta} \\
+	Z &= \frac {\mu^{+} _F}{\Delta}\label{eq:Z-delta}
 \end{align}
+%
+%%For algebraic simplicity later on, multiply every term by  $\Delta$ and obtain 
+%\begin{align}
+%	X &= -({\mu^{n} _B})^{-}\label{eq:X} \\
+%	Y &= -({\mu^{n} _F})^{+} + ({\mu^{n} _B})^{-}\label{eq:Y} \\
+%	Z &= ({\mu^{n} _F})^{+}\label{eq:Z}
+%\end{align}
 
 With these, construct the sparse matrix $A^n$
 \begin{align}
@@ -117,8 +117,8 @@ By substituting the approximation ${v^{n}}'$ found in \cref{eq:dv-upwind} into e
 \begin{align}
 u(c^n) &\equiv u\left(\left({v^n}'\right)^{-\frac{1}{\gamma}}\right)\\
 \intertext{We can then write as a system of equations in matrix form and solve for $v^{n+1}$}
-B^n &\equiv (\Delta \rho + 1)I - A^n\\
-b^n &\equiv \Delta u(c^n) + v^n\\
+B^n &\equiv (\rho + 1)I - A^n\\
+b^n &\equiv u(c^n) + v^n\\
 B^{n}v^{n+1} &= {b^n}
 \end{align}
 
