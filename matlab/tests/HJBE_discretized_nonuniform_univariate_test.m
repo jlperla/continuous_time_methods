@@ -64,13 +64,45 @@ function GBM_adding_points_test(testCase)
     x_extra = linspace(x_min, x_max, I_extra)';
     x = unique([x_base; x_extra], 'sorted');
     
+    nn = length(x);
+    
+    % Check by uniform grids
+    
+%    x = linspace(x_min, x_max, nn)';    % Data saved in HJBE_discretized_nonuniform_univarite_test_22_v_output.csv
+
+%     % Add only one point to a uniform grid
+%     x_base = linspace(x_min, x_max, nn - 1)';
+%     index = 3;
+%     while length(x_base) ~= nn && index < 19
+%         x_base = unique([x_base; x_extra(index)], 'sorted');
+%         index = index + 1;    
+%     end
+%     
+%     if length(x_base) == nn
+%         x = x_base;
+%     else
+%         print('Fail to construct a new x.');
+%     end
+    
+    % Shift most points in from a uniform grid by a tiny number 
+    x_base = linspace(x_min, x_max, nn)';
+    shifts = (rand(nn, 1) - 0.5) / (nn * 10e4);
+    shifts(1, 1) = 0;
+    shifts(end, 1) = 0;
+    shifts(601: 610, 1) = zeros(10, 1);
+    shifts(1001: 1010, 1) = zeros(10, 1);
+    x = x_base + shifts;
+     
+
+
+    
     A = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));
     u = u_x(x);
     
     %Solve the simple problem: rho v(x) = u(x) + A v(x) for the above process.
     [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho);
-    %dlmwrite(strcat(mfilename, '_2_v_output.csv'), v, 'precision', tolerances.default_csv_precision); %Uncomment to save again
-    v_check = dlmread(strcat(mfilename, '_2_v_output.csv'));    
+    %dlmwrite(strcat(mfilename, '_2222_v_output.csv'), v, 'precision', tolerances.default_csv_precision); %Uncomment to save again
+    v_check = dlmread(strcat(mfilename, '_22_v_output.csv'));    
     verifyTrue(testCase,norm(v - v_check, Inf) < tolerances.test_tol, 'v value no longer matches');
     verifyTrue(testCase, success==true, 'unsuccesful');
     
