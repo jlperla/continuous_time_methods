@@ -50,12 +50,8 @@ function zero_drift_for_large_sample_test(testCase)
     x = logspace(log10(x_min),log10(x_max),I)';
     [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu_x(x), sigma_2_x(x));     
 
-    %To save the file again, can uncomment this.
-    %dlmwrite(strcat(mfilename, '_3_A_output.csv'), full(A), 'precision', tolerances.default_csv_precision); %Uncomment to save again
-    A_check = dlmread(strcat(mfilename, '_3_A_output.csv'));    
     
-    verifyTrue(testCase,norm(A - A_check, Inf) < tolerances.test_tol, 'A value no longer matches');
-    
+    verifyTrue(testCase, (nnz(A) == 2998), 'Number of non-zero values is wrong')
     %The following are worth testing for almost every matrix in the test suit.
     verifyTrue(testCase,is_stochastic_matrix(testCase, A), 'Intensity matrix rows do not sum to 0');
     verifyTrue(testCase,is_negative_diagonal(testCase, A), 'Intensity Matrix diagonal has positive elements');
