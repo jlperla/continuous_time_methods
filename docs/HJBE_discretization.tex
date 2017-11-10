@@ -117,8 +117,8 @@ By substituting the approximation ${v^{n}}'$ found in \cref{eq:dv-upwind} into e
 \begin{align}
 u(c^n) &\equiv u\left(\left({v^n}'\right)^{-\frac{1}{\gamma}}\right)\\
 \intertext{We can then write as a system of equations in matrix form and solve for $v^{n+1}$}
-B^n &\equiv (\rho + 1)I - A^n\\
-b^n &\equiv u(c^n) + v^n\\
+B^n &\equiv \left(\rho + \frac{1}{\Delta}\right)I - A^n\\
+b^n &\equiv u(c^n) + \frac{v^n}{\Delta}\\
 B^{n}v^{n+1} &= {b^n}
 \end{align}
 
