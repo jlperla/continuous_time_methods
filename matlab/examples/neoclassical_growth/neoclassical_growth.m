@@ -21,10 +21,8 @@ I=10000;
 kmin = 0.001*kss;
 kmax = 2*kss;
 k = linspace(kmin,kmax,I)';
-dk = (kmax-kmin)/(I-1);
-
+Delta = k(2) - k(1);
 crit = 10^(-6);
-Delta = 1000;
 
 dV_F = zeros(I,1);
 dV_B = zeros(I,1);
@@ -38,10 +36,10 @@ maxit=10;
 for n=1:maxit
     V = v;
     % forward difference
-    dV_F(1:I-1) = (V(2:I)-V(1:I-1))/dk; %(11)
+    dV_F(1:I-1) = (V(2:I)-V(1:I-1))/Delta; %(11)
     dV_F(I) = (Aprod.*kmax.^alpha - delta.*kmax)^(-gamma); %(13) state constraint, for stability
     % backward difference
-    dV_B(2:I) = (V(2:I)-V(1:I-1))/dk; %(12)
+    dV_B(2:I) = (V(2:I)-V(1:I-1))/Delta; %(12)
     dV_B(1) = (Aprod.*kmin.^alpha - delta.*kmin)^(-gamma); %(14) state constraint, for stability
         
     %consumption and savings with forward difference
@@ -63,33 +61,33 @@ for n=1:maxit
     % original code: 
     % strict or weak inequality makes no difference in this case
     
-    %If = mu_F > 0; %below steady state
-    %Ib = mu_B < 0; %above steady state
-    %I0 = (1-If-Ib); %at steady state
-    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0; %(19) important to include third term
+    If = mu_F > 0; %below steady state
+    Ib = mu_B < 0; %above steady state
+    I0 = (1-If-Ib); %at steady state
+    dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0; %(19) important to include third term
                                                      
     %variation 1: (results in messy graph with complex components) 
-    %If = mu_F >= 0;
-    %Ib = (mu_B <= 0) & (mu_F < 0); 
-    %I0 = (mu_F < 0) & (mu_B > 0);
-    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0;
+%     If = mu_F >= 0;
+%     Ib = (mu_B <= 0) & (mu_F < 0); 
+%     I0 = (1-If-Ib); %at steady state
+%     dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0;
     
     %variation 1(a): (gives similar results as original)  
-    If = mu_F > 0;
-    Ib = (mu_B <= 0) & (mu_F <= 0); 
-    I0 = (mu_F < 0) & (mu_B > 0);
-    dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0;
+%     If = mu_F > 0;
+%     Ib = (mu_B <= 0) & (mu_F <= 0); 
+%     I0 = (1-If-Ib); %at steady state
+%     dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0;
     
     %variation 2: using only mu_F
-    %If = mu_F >=0;
-    %Ib = mu_F < 0;
-    %dV_Upwind = dV_F.*If + dV_B.*Ib;
+%     If = mu_F >=0;
+%     Ib = 1 - If;
+%     dV_Upwind = If.*dV_F + (1-If).*dV_B;
     
     %variation 3: taking the average  
-    %If = mu_F >= 0; 
-    %Ib = (mu_B <= 0) & (mu_F < 0); 
-    %I0 = (mu_F < 0) & (mu_B > 0); 
-    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_avg.*I0;
+%     If = mu_F >= 0; 
+%     Ib = (mu_B <= 0) & (mu_F < 0); 
+%     I0 = (1-If-Ib); %at steady state
+%     %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_avg.*I0;
             
     c = dV_Upwind.^(-1/gamma);
     u = c.^(1-gamma)/(1-gamma); %(24)
@@ -97,9 +95,9 @@ for n=1:maxit
     %CONSTRUCT MATRIX
     mu_B_m = min(mu_B,0); %General notation of plus/minus.
 	mu_F_p = max(mu_F,0); 
-    X = -mu_B_m/dk;    
-    Y = -mu_F_p/dk + mu_B_m/dk;
-    Z = mu_F_p/dk;
+    X = -mu_B_m/Delta;    
+    Y = -mu_F_p/Delta + mu_B_m/Delta;
+    Z = mu_F_p/Delta;
     
     %full matrix: slower
     %     for i=2:I-1
