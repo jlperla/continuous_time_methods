@@ -54,13 +54,39 @@ for n=1:maxit
     c_0 = Aprod.*k.^alpha - delta.*k;
     dV_0 = c_0.^(-gamma);
     
+    %average of forward and backward differences
+    dV_avg = (dV_B + dV_F)/2;
+    
     % dV_upwind makes a choice of forward or backward differences based on
-    % the sign of the drift    
+    % the sign of the drift
+    
+    % original code 
+    % strict or weak inequality makes no difference in this case
+    
     If = mu_F > 0; %below steady state
     Ib = mu_B < 0; %above steady state
     I0 = (1-If-Ib); %at steady state
-
     dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0; %(19) important to include third term
+    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_avg.*I0; %substituting
+                                                    %average
+                                                            
+    %variation 1: 
+    %If = mu_F >= 0;
+    %Ib = (mu_B <= 0) & (mu_F < 0); 
+    %I0 = (mu_F < 0) & (mu_B > 0);
+    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0;
+    
+    %variation 2: using only mu_F
+    %If = mu_F >=0;
+    %Ib = mu_F < 0;
+    %dV_Upwind = dV_F.*If + dV_B.*Ib;
+    
+    %variation 3: taking the average  
+    %If = mu_F >= 0; 
+    %Ib = (mu_B <= 0) & (mu_F < 0); 
+    %I0 = (mu_F < 0) & (mu_B > 0); 
+    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_avg.*I0;
+            
     c = dV_Upwind.^(-1/gamma);
     u = c.^(1-gamma)/(1-gamma); %(24)
     
@@ -82,10 +108,10 @@ for n=1:maxit
    
     % Construct sparse A matrix  
     A =spdiags(Y,0,I,I)+spdiags(X(2:I),-1,I,I)+spdiags([0;Z(1:I-1)],1,I,I);
-    B = (rho + 1/Delta)*speye(I) - A;
+    B = (rho + 1/Delta)*speye(I) - A; %(25)
     
-    b = u + V/Delta;
-    V = B\b; %SOLVE SYSTEM OF EQUATIONS
+    b = u + V/Delta; %(26) 
+    V = B\b; %(27) SOLVE SYSTEM OF EQUATIONS
     Vchange = V - v;
     v = V;   
 
