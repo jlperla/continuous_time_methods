@@ -60,21 +60,25 @@ for n=1:maxit
     % dV_upwind makes a choice of forward or backward differences based on
     % the sign of the drift
     
-    % original code 
+    % original code: 
     % strict or weak inequality makes no difference in this case
     
-    If = mu_F > 0; %below steady state
-    Ib = mu_B < 0; %above steady state
-    I0 = (1-If-Ib); %at steady state
-    dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0; %(19) important to include third term
-    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_avg.*I0; %substituting
-                                                    %average
-                                                            
-    %variation 1: 
+    %If = mu_F > 0; %below steady state
+    %Ib = mu_B < 0; %above steady state
+    %I0 = (1-If-Ib); %at steady state
+    %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0; %(19) important to include third term
+                                                     
+    %variation 1: (results in messy graph with complex components) 
     %If = mu_F >= 0;
     %Ib = (mu_B <= 0) & (mu_F < 0); 
     %I0 = (mu_F < 0) & (mu_B > 0);
     %dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0;
+    
+    %variation 1(a): (gives similar results as original)  
+    If = mu_F > 0;
+    Ib = (mu_B <= 0) & (mu_F <= 0); 
+    I0 = (mu_F < 0) & (mu_B > 0);
+    dV_Upwind = dV_F.*If + dV_B.*Ib + dV_0.*I0;
     
     %variation 2: using only mu_F
     %If = mu_F >=0;
