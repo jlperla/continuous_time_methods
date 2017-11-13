@@ -39,7 +39,7 @@ function [A, Delta_p, Delta_m] = discretize_univariate_diffusion(x, mu, sigma_2,
 		A(I,I) = Y(I) + Z(I); %Reflecting barrier,  (10) and (6)
     else
         %% Construct sparse A matrix with non-uniform gird
-        % For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
+        %For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
 		mu_m = min(mu,0); %General notation of plus/minus.
 		mu_p = max(mu,0); 		
 		X = - mu_m./Delta_m + sigma_2 ./(Delta_m.*(Delta_p + Delta_m)); %(31)
