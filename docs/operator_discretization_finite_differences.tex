@@ -325,8 +325,110 @@ and the infinitesimal generator is
 \begin{align}
 	\mathcal{A} &\equiv \mu(t,x)\D[x] + \frac{\sigma(t,x)^2}{2}\D[xx] + \D[t]\label{eq:A-generator-univariate-diffusion-t}
 \end{align}
-Even if the $\mu(\cdot)$ and $\sigma(\cdot)$ are independent of time, the discretized generator used for solving the problem may be dependent on time due to boundary values.
+Even if the $\mu(\cdot)$ and $\sigma(\cdot)$ are independent of time, the discretized generator used for solving the problem may be dependent on time due to boundary values or changes outside of the matrix itself.
 
+The grid on $x \in [\underline{x},\bar{x}]$ is as discussed before, with step-sizes $\Delta_{+}$ and $\Delta_{-}$ (and $\Delta$ if uniform grid).  The the grid on time $t \in [0,T]$ has step sizes $h_{+}$ and $h_{-}$ (and just $h$ if uniform).  The gridpoints are index $n=1,\ldots N$ for time, where $t_1 = 0$ and $t_N = T$.  
+
+\paragraph{Boundary Values}
+As before, we will assume reflecting boundaries at some $\underline{x}$ and $\bar{x}$, so that the boundary values are,
+\begin{align}
+\D[x]v(t,\underline{x}) &= 0\\
+\D[x]v(t,\bar{x}) &= 0
+\end{align}
+
+For the boundary value in the time dimension, we could use the solution to the stationary problem.  FOr example, lets say that $\bar{v}(x)$ is the solution to stationary setup, then the boundary value is
+\begin{align}
+v(T,x) &= \bar{v}(x)
+\intertext{However, the more natural approach is to simply say that the equation is in a steady state (i.e., the time derivative is $0$)}
+\D[t]v(T,x) &= 0
+\end{align} 
+The second approach is ideal because we don't have to solve for the stationary solution separately.   Moreover, the strong suspicion is that using the stationary boundary value on the derivative will essentially solve for the stationary equilibrium as part of the system of equations.  Basically, if you look at the bottom right corner of the stacked system of equations after imposing the boundary value, it may exactly be the system we solved to find the stationary setup.
+
+\paragraph{Discretizing Drift, Volatility, and Payoff}
+As $\mu(t,x), \sigma(t,x),$ and any payoff $u(t,x)$ may now be time varying, we can discretize them as,
+\begin{align}
+	\mu^n_i &\equiv \mu(t_n, x_i)\\
+	\sigma^n_i &\equiv \sigma(t_n, x_i)\\
+	u^n_i &\equiv u(t_n, x_i)\\
+	\intertext{Stack these up to form a vector for a given time period.  For example,}
+	\mu^n &\equiv \begin{bmatrix} \mu^n_1 \\ \mu^n_2 \\ \vdots\\ \mu^n_I\end{bmatrix}\in \R^I
+	\intertext{Then stack these up over time,}
+	\mu &\equiv \begin{bmatrix} \mu^1 \\ \mu^2 \\ \vdots\\ \mu^N\end{bmatrix}\in \R^{N I}
+\end{align}
+Define $\sigma^n$, $\sigma$, etc. similarly.
+
+\paragraph{Implicit vs. Explicit Time Stepping}
+The key choice when discretizing the time dimension with a PDE is whether to use a derivative that is implicit vs. explicit in time.
+\begin{itemize}
+	\item Explicit: $\D[t]v(t_n,x_i) \approx \frac{v^{n+1}_i - v^n_i}{h_{i,+}}$
+	\item Implicit: $\D[t]v(t_n,x_i) \approx \frac{v^n_i - v^{n-1}_i}{h_{i,-}}$
+\end{itemize}
+The tradeoff, typically, is that explicit methods are faster (because you can step forward in time given a solution to $v_n^i$) but they can be unstable (i.e., choosing the wrong $\Delta/h$ ratio and it diverges, even if both are small!).  Implicit methods are much more stable and often have unconditional convergence, but require solving systems of equations.
+
+For economic applications, the speed advantage of explicit methods may be less useful because this setup is rarely an initial value problem (i.e. $v^1_i$ is not given).  To be examined more carefully.
+
+\subsection{Upwind with Time Variation}
+Following \cref{eq:X-non-uniform,eq:Y-non-uniform,eq:Z-non-uniform} we can define for each time step $X^n$, $Y^n$ and $Z^n$ (after simplification) as 
+\begin{align}
+X^n &\equiv -\frac{\mu^{n,-}}{\Delta_{-}} +\frac{\left(\sigma^n\right)^2}{\Delta_{-}(\Delta_{+}+\Delta_{-})}\label{eq:X-non-uniform-t}\\
+Y^n &\equiv -\frac{\mu^{n,+}}{\Delta_{+}}+\frac{\mu^{n,-}}{\Delta_{-}} -\frac{\left(\sigma^n\right)^2}{\Delta_{+}\Delta_{-}}\label{eq:Y-non-uniform-t}\\
+Z^n &\equiv \frac{\mu^{n,+}}{\Delta_{+}} + \frac{\left(\sigma^n\right)^2}{\Delta_{+}(\Delta_{+}+\Delta_{-})}\label{eq:Z-non-uniform-t}
+\end{align}
+
+Next, make a version of \cref{eq:A} to make a block for a given time,
+\begin{align}
+A^n &\equiv \begin{bmatrix}
+Y^n_1 + X^n_1 & Z^n_1 & 0 & \cdots & \cdots & \cdots & 0 \\
+X^n_2 & Y^n_2 & Z^n_2 & 0 & \ddots& & \vdots \\
+0 & \ddots & \ddots & \ddots & \ddots &  & \vdots \\
+\vdots & &\ddots & \ddots & \ddots & \ddots  & \vdots \\
+\vdots & & & \ddots & X^n_{I-1} & Y^n_{I-1}  & Z^n_{I-1} \\
+0 & \cdots & \cdots & \cdots & 0 & X^n_I & Y^n_I+Z^n_I\\
+\end{bmatrix}\in\R^{I\times I}\label{eq:A-t}
+\end{align}
+
+Define the following diagonal matrices from the time-stepping,
+\begin{align}
+D_{-}^n &\equiv \frac{1}{h_{n,-}} \mathbf{I}\\
+D_{+}^n &\equiv \frac{1}{h_{n,+}} \mathbf{I}
+\end{align}
+
+\subsection{Algebra for Explicit Time Steps}
+\textbf{TODO:}  Follow the examples in the stationary setup to derive what the individual equations might be for each node.  It will likely be very similar to \cref {eq:A-collected-interior-with-nonuniform-grid,eq:reflecting-left-nonuniform,eq:reflecting-right-nonuniform}
+
+\subsection{Explicit Time Steps as a Matrix}
+\textbf{THIS IS COMPLETELY A GUESS!  It could be exactly right, and it could be wildly off.  It is also very possible that this guess is actually the implicit time-scheme}
+Define the matrix of zeros as $\mathbf{0} \equiv 0_{I\times I}$.  Given the discretization of  $\frac{v^{n+1}_i - v^n_i}{h_{i,+}}$, make the guess that the discretized operator is,
+\begin{align}
+A &\equiv \begin{bmatrix}
+	A^1 - D_{+}^1	& D_{+}^1		& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
+	\mathbf{0} 		&A^1 - D_{+}^2 & D_{+}^2 				 & \ldots			 & \mathbf{0}\\	
+	\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
+	\mathbf{0} 		&\ldots 	 	&\mathbf{0}				& A^{N-1} - D_{+}^{N-1} & D_{+}^{N-1}\\
+	\mathbf{0} 		&\ldots 		&						& \mathbf{0}	&A^N
+	\end{bmatrix}\in\R^{(N I)\times (N I)}
+\end{align}
+Why is there no subtraction of the $D_{+}$ at time $T$?  It comes from the boundary condition that $\D[t]v(T,x) = 0$.  If things are setup properly, the bottom right of the setup should be solvable on its own, and exactly replicate the stationary setup.  Also notice that $A$ nests the stationary setup if there is only a single time-period.\footnote{If I had to guess, implicit would end up something like:
+\begin{align}
+A &\equiv \begin{bmatrix}
+A^1 ???	& 0		& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
+D_{-}^2 		&A^1 - D_{-}^2 & \mathbf{0}				 & \ldots			 & \mathbf{0}\\	
+\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
+\mathbf{0} 		&\ldots 	 	& D_{-}^{N-1}			& A^{N-1} - D_{-}^{N-1} &\mathbf{0}	\\
+\mathbf{0} 		&\ldots 		&						& \mathbf{0}	&A^N
+\end{bmatrix}\in\R^{(N I)\times (N I)}
+\end{align}
+The tough part to reason out is the $n=1$ setup at $t=0$, because you can't go backwards...  It is possible that this is simply not a good approach to solving the problem, and that the other approach is necessary?
+}
+
+If this is correct, then we can solve the following,
+\begin{align}
+	\rho v(t,x) &= u(t,x) + \mathcal{A}v(t,x)\\
+	\intertext{With the discretized $u\in\R^{N I}$, use this $A$ matrix.}
+	\rho v &= u + A v
+\intertext{subject to the appropriate boundary conditions.  Discretizing the grid, let $u \equiv \set{u(x_i)}_{i=1}^I\in\R^I$, then the discretized version is,}
+(\rho  \mathbf{I} - A) v &= u\label{eq:discretized-linear-HJBE-dynamic}
+\end{align}
 
 \bibliography{etk-references}
 
