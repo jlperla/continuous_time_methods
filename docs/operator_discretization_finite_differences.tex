@@ -8,7 +8,7 @@
 \author{Jesse Perla\\UBC}
 \date{\today}
 \maketitle
- Here, we expand on details for how to discretize linear and nonlinear operators for use in other methods.\footnote{These notes expand on Ben Moll's superb notes in \url{http://www.princeton.edu/~moll/HACTproject/}. }  Most of the notes will focus on time-homogeneity examples.\footnote{For more background on differential operators, see \url{https://en.wikipedia.org/wiki/Differential_operator}.}
+ Here, we expand on details for how to discretize linear and nonlinear operators for use in other methods.\footnote{These notes expand on Ben Moll's superb notes in \url{http://www.princeton.edu/~moll/HACTproject/}. Also thanks to the excellent RA work by Sev Hou and Stephen Zhang.}  Most of the notes will focus on time-homogeneity examples.\footnote{For more background on differential operators, see \url{https://en.wikipedia.org/wiki/Differential_operator}.}
 \paragraph{General Notation} The following expressions are used in the document:
 \begin{itemize}
 	\item Given an operator (or infinitesimal generator) associated with a particular stochastic process, $\mathcal{A}$.\footnote{See \url{https://en.wikipedia.org/wiki/Infinitesimal_generator_(stochastic_processes)} for some formulas and interpretation for diffusions, and \url{https://en.wikipedia.org/wiki/Transition_rate_matrix} for the generator of continuous-time Markov chains.}  The purpose of these notes is to discretize $\mathcal{A}$ on this grid using finite differences.  Crucially, it is necessary to put boundary-values into the discretized operator as well. 
