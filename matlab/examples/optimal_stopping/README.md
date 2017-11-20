@@ -1,4 +1,10 @@
 
+## Variations on Solutions to Optimal Stopping Problems
+See Ben Moll's [Heterogeneous Agent Models in Continuous Time](http://www.princeton.edu/~moll/HACTproject.htm) project.  In particular
+* [Stopping Time Problem I: Exercising an Option:](http://www.princeton.edu/~moll/HACTproject/option_simple.pdf): with http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m
+* [Stopping Time Problem II: Liquid and Illiquid Assets and Fixed Adjustment Costs:](http://www.princeton.edu/~moll/HACTproject/liquid_illiquid_numerical.pdf): with http://www.princeton.edu/~moll/HACTproject/liquid_illiquid_LCP.m
+
+
 ## Simple Example with a Diffusion
 While the application here is for a stopping problem with a diffusion, many of the examples here are simply about the discretizaiton step for the HJBE.
 * The file [simple_optimal_stopping_diffusion.m](./matlab/simple_optimal_stopping_diffusion.m) is a annotated variation on http://www.princeton.edu/~moll/HACTproject/option_simple_LCP.m which uses same linear-complementarity problem solver [LCP.m](./LCP.m) as the HACTproject
