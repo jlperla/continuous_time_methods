@@ -17,12 +17,13 @@ Aprod = 1; %factor of production A
 kss = (alpha*Aprod/(rho+delta))^(1/(1-alpha)); %(9) 
 
 %set up uniform grid with I discrete points
-I=10000;
+I=1000;
 kmin = 0.001*kss;
 kmax = 2*kss;
 k = linspace(kmin,kmax,I)';
 Delta = k(2) - k(1);
 crit = 10^(-6);
+h = 1/1000; %There may be stability conditions on h/Delta
 
 dV_F = zeros(I,1);
 dV_B = zeros(I,1);
@@ -37,10 +38,10 @@ for n=1:maxit
     V = v;
     % forward difference
     dV_F(1:I-1) = (V(2:I)-V(1:I-1))/Delta; %(11)
-    dV_F(I) = (Aprod.*kmax.^alpha - delta.*kmax)^(-gamma); %(13) state constraint, for stability
+    dV_F(I) = (Aprod.*kmax.^alpha - delta.*kmax)^(-gamma); %(13) state constraint, for stability.  Is this really needed?
     % backward difference
     dV_B(2:I) = (V(2:I)-V(1:I-1))/Delta; %(12)
-    dV_B(1) = (Aprod.*kmin.^alpha - delta.*kmin)^(-gamma); %(14) state constraint, for stability
+    dV_B(1) = (Aprod.*kmin.^alpha - delta.*kmin)^(-gamma); %(14) state constraint, for stability.  Is this really needed?
         
     %consumption and savings with forward difference
     c_F = dV_F.^(-1/gamma);
@@ -110,9 +111,9 @@ for n=1:maxit
    
     % Construct sparse A matrix  
     A =spdiags(Y,0,I,I)+spdiags(X(2:I),-1,I,I)+spdiags([0;Z(1:I-1)],1,I,I);
-    B = (rho + 1/Delta)*speye(I) - A; %(25)
+    B = (rho + 1/h)*speye(I) - A; %(25)
     
-    b = u + V/Delta; %(26) 
+    b = u + V/h; %(26) 
     V = B\b; %(27) SOLVE SYSTEM OF EQUATIONS
     Vchange = V - v;
     v = V;   
