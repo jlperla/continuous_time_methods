@@ -6,11 +6,6 @@
     * From Pontus Rendahl: http://www.princeton.edu/~moll/Pontus_Lecture1.pdf and http://www.princeton.edu/~moll/Pontus_Lecture2.pdf
     * [Stopping Time Problem I: Exercising an Option:](http://www.princeton.edu/~moll/HACTproject/option_simple.pdf):
 
-## Variations on Solutions to Optimal Stopping Problems
-See Ben Moll's [Heterogeneous Agent Models in Continuous Time](http://www.princeton.edu/~moll/HACTproject.htm) project.  In particular
-* [Stopping Time Problem I: Exercising an Option:](http://www.princeton.edu/~moll/HACTproject/option_simple.pdf)
-
-
 ## Detailed Notes on Methods
 * See [operator_discretization_finite_differences.pdf](operator_discretization_finite_differences.pdf) for details on the discretization of the stochastic proceses (both stationary and time-varying), and the solution to simple value function and stationary distribution calculuations.
 * See [optimal_stopping.pdf](optimal_stopping.pdf) for details on solving optimal stopping problem (given the discretization).
