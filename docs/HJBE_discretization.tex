@@ -72,7 +72,7 @@ Further define the notations $\underline{k} \equiv k_1$, $\overline{k} \equiv k_
 
 \subsection{Iterating on a Linear System of Equations}
 This section solves the problem through a series of iterations on a linear system of equations.
-\paragraph{Iterative Method }Pick an $h$, which is used in the iterative process.\footnote{In effect, I think that this is like using an explicit time step in a PDE, where we are forward iterating fixing the policy?  Because of this, there is a high likelihood that it is not unconditionally stable, like other explicit PDE methods in time.}  We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for each consecutive iteration $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
+\paragraph{Iterative Method }Pick an $h$, which is used in the iterative process.\footnote{\textbf{TODO:} I believe this is the Howard algorithm.  In effect, I think that this is like using an explicit time step in a PDE, where we are forward iterating fixing the policy?  Because of this, there is a high likelihood that it is not unconditionally stable.}  We first make an initial guess $v^0 = (v_1^0, \dots v_I^0)$. Then for each consecutive iteration $n = 0, 1, 2, ...$,  update $v^n$ using the following equation
 \begin{align}
 \frac{v_i^{n+1}-v_i^{n}}{h} + \rho v_i^{n+1} = u(c_i^n) + (v_i^{n+1})^{'}  \underbrace{\left[f(k_i) - \delta k_i - c_i^n\right]}_{\equiv \mu_i}\label{eq:fd-approx-capital}
 \end{align}
@@ -124,7 +124,7 @@ B^{n}v^{n+1} &= {b^n}
 
 
 
-When $v^{n+1}$ is sufficiently close in value to $v^n$, the algorithm is complete. Otherwise, update the value of $v^n$ and repeat the previous steps for the next iteration. Keep in mind that the solution may not be unconditionally stable for an arbitrary $h$.\footnote{That is, there good chance that there is some sort of a Courant, Friedrichs, Lewy type condition required.}
+When $v^{n+1}$ is sufficiently close in value to $v^n$, the algorithm is complete. Otherwise, update the value of $v^n$ and repeat the previous steps for the next iteration. Keep in mind that the solution may not be unconditionally stable for an arbitrary $h$.
 
 
 \subsection{Nonlinear System of Equations}
