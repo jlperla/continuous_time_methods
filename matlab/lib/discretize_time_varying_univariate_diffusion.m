@@ -58,7 +58,7 @@ function [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_di
         else
             D_p = 1/h_p(n) * eye(I);
             indx = I*(n-1)+1;
-            A(indx:indx+I-1,indx:indx+I-1)=A_{n}-D_p; % right corner of (93)
+            A(indx:indx+I-1,indx:indx+I-1)=A_{n}; % right corner of (93)
         end
     end
 
