@@ -48,15 +48,15 @@ function [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_di
     
     % Create D_{p,n} using explicit time steps and create A matrix
     
-    A = zeros(N*I,N*I);
+    A = sparse(N*I,N*I); %Creates a sparse matrix filled with 0s
     
     for n=1:N
         if n<N
-            D_p = 1/h_p(n) * eye(I);% explicit time step (79)
+            D_p = 1/h_p(n) * speye(I);% explicit time step (79)
             indx = I*(n-1)+1;
             A(indx:indx+I-1,indx:indx+2*I-1)=[A_{n}-D_p D_p]; % Matrix A in (93)
         else
-            D_p = 1/h_p(n) * eye(I);
+            D_p = 1/h_p(n) * speye(I);
             indx = I*(n-1)+1;
             A(indx:indx+I-1,indx:indx+I-1)=A_{n}; % right corner of (93)
         end
