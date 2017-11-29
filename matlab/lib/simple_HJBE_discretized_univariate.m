@@ -16,7 +16,7 @@ function [v, success] = simple_HJBE_discretized_univariate(A, x, u, rho, setting
     if(strcmp(settings.method, 'sparse_system'))
         %Solve as a simple sparse system of equations.
         %More advanced solvers could use preconditioners, etc.
-        v = (rho * eye(I) - A) \ u;
+        v = (rho * speye(I) - A) \ u;
         success = true;
     end
  
