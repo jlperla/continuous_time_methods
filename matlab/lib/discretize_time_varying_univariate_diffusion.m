@@ -25,7 +25,8 @@ function [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_di
     % stack delta's into R^NI
     Delta_stack_p=repmat(Delta_p,N,1);
     Delta_stack_m=repmat(Delta_m,N,1); 
-      
+    D_h_stack_p = kron(1./h_p(1:N), ones(I,1)); %Stacks up 1/h_+ for each spatial dimension.
+    
    %% Construct sparse A matrix with non-uniform grid (uniform case is just a generalization of non-uniform)
     %For non-uniform grid, \Delta_{i, +}=x_{i+1} - x_{i} and \Delta_{i, -}=x_{i} - x_{i-1}
     mu_m = min(mu,0); %General notation of plus/minus.
@@ -36,30 +37,18 @@ function [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_di
     
     %Creates A^n matrices that's are n-specific(time grid specific)
     
+    % Construct the A matrix in pieces
+    A = spdiags([nan(I,1); D_h_stack_p], [I], N*I, N*I); %Start with the off-diagonal of 1/h_p
     for n=1:N
         indx = I*(n-1)+1;
         Xn = X(indx:indx+I-1);
         Yn = Y(indx:indx+I-1);
         Zn = Z(indx:indx+I-1);
-        A_{n} = spdiags([[Xn(2:I); NaN] Yn [NaN; Zn(1:I - 1)]], [-1 0 1], I,I);% (77) for each time node indexed by n, A_n is different as mu_n changes. The procedure similar to that in time-invariant case   
-        A_{n}(1,1) = Yn(1) + Xn(1);%Reflecting barrier, top corner of (77)
-        A_{n}(I,I) = Yn(I) + Zn(I);%Reflecting barrier, bottom corner of (77)
+        A_n = spdiags([[Xn(2:I); NaN] Yn [NaN; Zn(1:I - 1)]], [-1 0 1], I,I);% (77) for each time node indexed by n, A_n is different as mu_n changes. The procedure similar to that in time-invariant case   
+        A_n(1,1) = Yn(1) + Xn(1);%Reflecting barrier, top corner of (77)
+        A_n(I,I) = Yn(I) + Zn(I);%Reflecting barrier, bottom corner of (77)
+        A(indx:indx+I-1,indx:indx+I-1)=A_n;
     end
-    
-    % Create D_{p,n} using explicit time steps and create A matrix
-    
-    A = sparse(N*I,N*I); %Creates a sparse matrix filled with 0s
-    
-    for n=1:N
-        if n<N
-            D_p = 1/h_p(n) * speye(I);% explicit time step (79)
-            indx = I*(n-1)+1;
-            A(indx:indx+I-1,indx:indx+2*I-1)=[A_{n}-D_p D_p]; % Matrix A in (93)
-        else
-            D_p = 1/h_p(n) * speye(I);
-            indx = I*(n-1)+1;
-            A(indx:indx+I-1,indx:indx+I-1)=A_{n}; % right corner of (93)
-        end
-    end
+    A = A + spdiags(-[D_h_stack_p(1:I*(N-1)); zeros(I,1)], [0], N*I, N*I); %Putting 0's at the end
 
 end	
