@@ -17,8 +17,7 @@ end
 
 
 function nothing_uniform_test(testCase)
-   %This will create a time-varying setup, and should show that  
-    tolerances = testCase.TestData.tolerances;
+   tolerances = testCase.TestData.tolerances;
     
     mu_tx = @(t, x) -0.1 + t + .1*x;%cludge if constant since bsxfun gets confused otherwise
     sigma_bar = 0.1;
