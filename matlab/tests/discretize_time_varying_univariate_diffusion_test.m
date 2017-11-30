@@ -318,90 +318,97 @@ function time_varying_mu_test(testCase)
    % or not
    
 end 
-% 
-% function time_varying_both_shift_test(testCase)
-%     %This will create a time-varying setup, and should show that  
-%     tolerances = testCase.TestData.tolerances;
-% 
-%     
-%     %Grid
-%     rho = 0.05;
-%     x_min = 0.1;
-%     x_max = 3;
-%     I = 1000;
-% 	t_min = 0.0;
-% 	t_max = 1.0;
-% 	N = 1000;
-%     x_base = linspace(x_min, x_max, I)';
-% 	t_base = linspace(t_min, t_max, N)';
-%     a = 0.0; % this is defining F(0)=a
-%     
-%     % mu is time varying
-%     mu_tx = @(t,x) -0.01 * x .*((t_max-a)/t_max*t+a);
-%     sigma_bar = 0.1;
-%     sigma_2_tx = @(t,x) (sigma_bar*x).^2+0*t;
-%     
-%     %Linspace then merge in extra points
-%     nn = length(x_base);
-%     shifts = (rand(nn, 1) - 0.5) / (nn * 10e4);
-%     shifts(1, 1) = 0;
-%     shifts(end, 1) = 0;
-%     shifts(301: 310, 1) = zeros(10, 1);
-%     shifts(701: 710, 1) = zeros(10, 1);
-%     x = x_base+shifts;
-%     
-%     tt = length(t_base);
-%     shifts = (rand(tt, 1) - 0.5) / (tt * 10e2);
-%     shifts(1, 1) = 0;
-%     shifts(end, 1) = 0;
-%     shifts(301: 310, 1) = zeros(10, 1);
-%     shifts(701: 710, 1) = zeros(10, 1);
-%     
-%     t = t_base+shifts;   
-%         
-%     % u is also time varying
-%     
-%     u_tx = @(t,x) exp(x).*((t_max-a)/t_max*t+a); % F(t)=(T-a)/T*t+a
-% 
-%     % Uncomment if want to compute v_b, saved in '_3_v_output'
-%     
-%    [t_grid_b, x_grid_b] = meshgrid(t_base,x_base); %Generates permutations (stacked by t first, as we want) could look at: [t_grid(:) x_grid(:)]
-%    state_permutations_b = [t_grid_b(:) x_grid_b(:)];
-%   
-%    mu_b = bsxfun(mu_tx, state_permutations_b(:,1), state_permutations_b(:,2)); %applies binary function to these, and remains in the correct stacked order.
-%    sigma_2_b = bsxfun(sigma_2_tx, state_permutations_b(:,1), state_permutations_b(:,2)); %applies binary function to these, and remains in the correct stacked order.
-%   
-%    %Discretize the operator
-%    [A_b, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_diffusion(t_base, x_base, mu_b, sigma_2_b);
-%    
-%    u_b = bsxfun(u_tx, state_permutations_b(:,1), state_permutations_b(:,2));
-%    
-%    v_b = simple_HJBE_discretized_univariate(A_b, state_permutations_b(:,1), u_b, rho); % state_perm need to be in size N*I
-%    %dlmwrite(strcat(mfilename, '_5_v_output.csv'), v_b, 'precision', tolerances.default_csv_precision); %Uncomment to save again
-%    
-%    [t_grid, x_grid] = meshgrid(t,x); %Generates permutations (stacked by t first, as we want) could look at: [t_grid(:) x_grid(:)]
-%    state_permutations = [t_grid(:) x_grid(:)];
-%   
-%    mu = bsxfun(mu_tx, state_permutations(:,1), state_permutations(:,2)); %applies binary function to these, and remains in the correct stacked order.
-%    sigma_2 = bsxfun(sigma_2_tx, state_permutations(:,1), state_permutations(:,2)); %applies binary function to these, and remains in the correct stacked order.
-%   
-%    %Discretize the operator
-%    [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_diffusion(t, x, mu, sigma_2);
-%    
-%    u = bsxfun(u_tx, state_permutations(:,1), state_permutations(:,2));
-%    
-%    [v,success] = simple_HJBE_discretized_univariate(A, state_permutations(:,1), u, rho); % state_perm need to be in size N*I
-%    
-%    v_check = dlmread(strcat(mfilename, '_5_v_output.csv'));    
-%    
-%    
-%    % test whether baseline result changes
-%    verifyTrue(testCase,norm(v_b - v_check, Inf) < tolerances.test_tol, 'v_baseline value no longer matches');
-%    % test whether the add point results after interploration is close to
-%    % baseline
-%    v_intp = interp2(t_grid, x_grid, reshape(v,size(x_grid,1),size(x_grid,2)), t_grid_b, x_grid_b); % interpolate v to v_b
-%    verifyTrue(testCase,norm(reshape(v_intp,size(v_intp,1)*size(v_intp,2),1) - v_check, Inf) < 1e-6, 'v_addpoint value not matches');
-%    % Notice here: the max diff is 1e-7, not sure whether it's acceptable
-%    % or not
-%    
-% end
+
+function time_varying_both_shift_test(testCase)
+    %This will create a time-varying setup, and should show that  
+    tolerances = testCase.TestData.tolerances;
+
+    
+    %Grid
+    rho = 0.05;
+    x_min = 0.1;
+    x_max = 3;
+    I = 1000;
+	t_min = 0.0;
+	t_max = 1.0;
+	N = 200;
+    x_base = linspace(x_min, x_max, I)';
+	t_base = linspace(t_min, t_max, N)';
+    a = 0.0; % this is defining F(0)=a
+    
+    % mu is time varying
+    mu_tx = @(t,x) -0.01 * x .*((t_max-a)/t_max*t+a);
+    sigma_bar = 0.1;
+    sigma_2_tx = @(t,x) (sigma_bar*x).^2+0*t;
+    
+    %Some shifts in x and t spaces
+    
+    x_shift_1 = floor(0.3 * I);
+    x_shift_2 = floor(0.7 * I);
+    t_shift_1 = floor(0.3 * N);
+    t_shift_2 = floor(0.7 * N);
+
+     
+    %Linspace then merge in extra points
+    nn = length(x_base);
+    shifts = (rand(nn, 1) - 0.5) / (nn * 10e4);
+    shifts(1, 1) = 0;
+    shifts(end, 1) = 0;
+    shifts(x_shift_1 + 1: x_shift_1 + 10, 1) = zeros(10, 1);
+    shifts(x_shift_2 + 1: x_shift_2 + 10, 1) = zeros(10, 1);
+    x = x_base+shifts;
+    
+    tt = length(t_base);
+    shifts = (rand(tt, 1) - 0.5) / (tt * 10e2);
+    shifts(1, 1) = 0;
+    shifts(end, 1) = 0;
+    shifts(t_shift_1 + 1: t_shift_1 + 10, 1) = zeros(10, 1);
+    shifts(t_shift_2 + 1: t_shift_2 + 10, 1) = zeros(10, 1);    
+    t = t_base+shifts;   
+        
+    % u is also time varying
+    
+    u_tx = @(t,x) exp(x).*((t_max-a)/t_max*t+a); % F(t)=(T-a)/T*t+a
+
+    % Uncomment if want to compute v_b, saved in '_3_v_output'
+    
+   [t_grid_b, x_grid_b] = meshgrid(t_base,x_base); %Generates permutations (stacked by t first, as we want) could look at: [t_grid(:) x_grid(:)]
+   state_permutations_b = [t_grid_b(:) x_grid_b(:)];
+  
+   mu_b = bsxfun(mu_tx, state_permutations_b(:,1), state_permutations_b(:,2)); %applies binary function to these, and remains in the correct stacked order.
+   sigma_2_b = bsxfun(sigma_2_tx, state_permutations_b(:,1), state_permutations_b(:,2)); %applies binary function to these, and remains in the correct stacked order.
+  
+   %Discretize the operator
+   [A_b, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_diffusion(t_base, x_base, mu_b, sigma_2_b);
+   
+   u_b = bsxfun(u_tx, state_permutations_b(:,1), state_permutations_b(:,2));
+   
+   v_b = simple_HJBE_discretized_univariate(A_b, state_permutations_b(:,1), u_b, rho); % state_perm need to be in size N*I
+   %dlmwrite(strcat(mfilename, '_5_v_output.csv'), v_b, 'precision', tolerances.default_csv_precision); %Uncomment to save again
+   
+   [t_grid, x_grid] = meshgrid(t,x); %Generates permutations (stacked by t first, as we want) could look at: [t_grid(:) x_grid(:)]
+   state_permutations = [t_grid(:) x_grid(:)];
+  
+   mu = bsxfun(mu_tx, state_permutations(:,1), state_permutations(:,2)); %applies binary function to these, and remains in the correct stacked order.
+   sigma_2 = bsxfun(sigma_2_tx, state_permutations(:,1), state_permutations(:,2)); %applies binary function to these, and remains in the correct stacked order.
+  
+   %Discretize the operator
+   [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_diffusion(t, x, mu, sigma_2);
+   
+   u = bsxfun(u_tx, state_permutations(:,1), state_permutations(:,2));
+   
+   [v,success] = simple_HJBE_discretized_univariate(A, state_permutations(:,1), u, rho); % state_perm need to be in size N*I
+   
+   v_check = dlmread(strcat(mfilename, '_5_v_output.csv'));    
+   
+   
+   % test whether baseline result changes
+   verifyTrue(testCase,norm(v_b - v_check, Inf) < tolerances.test_tol, 'v_baseline value no longer matches');
+   % test whether the add point results after interploration is close to
+   % baseline
+   v_intp = interp2(t_grid, x_grid, reshape(v,size(x_grid,1),size(x_grid,2)), t_grid_b, x_grid_b); % interpolate v to v_b
+   verifyTrue(testCase,norm(reshape(v_intp,size(v_intp,1)*size(v_intp,2),1) - v_check, Inf) < 1e-6, 'v_addpoint value not matches');
+   % Notice here: the max diff is 1e-7, not sure whether it's acceptable
+   % or not
+   
+end
