@@ -32,7 +32,7 @@ function [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_di
     Z =  mu_p./Delta_stack_p + sigma_2 ./ (Delta_stack_p.*(Delta_stack_p + Delta_stack_m)); % (76)
       
     %Creating A using the spdiags banded matrix style
-    bands = [X (Y - [D_h_stack_p(1:I*(N-1)); zeros(I,1)]) Z [nan(I,1); D_h_stack_p(1:I*(N-1))]];
+    bands = [X (Y - [D_h_stack_p(1:I*(N-1)); zeros(I,1)]) Z D_h_stack_p];
     
     %Need to manually tweak the corners at every time period.  If the boundary values for the stochastic process were to change could modify here.
     for n = 1:N
@@ -50,7 +50,9 @@ function [A, Delta_p, Delta_m, h_p, h_m] = discretize_time_varying_univariate_di
     end
 
     %Make banded matrix.  Tridiagonal with an additional term spaced I to the right of the main diagonal
-    A = spdiags([[bands(2:end,1);NaN] bands(:,2) [NaN; bands(1:end-1,3)] bands(:,4)], [-1 0 1 I], N*I, N*I);
+    A = spdiags([[bands(2:end,1);nan(1,1)] bands(:,2) [nan(1,1); bands(1:end - 1,3)] [nan(I,1); bands(1:end - I,4)]],...%padding the bands as appropriate where spdiags ignores the data. nan helps catch errors
+                [-1 0 1 I],... %location of the bands.  Match to the number of nan in the preceding matrix,  For negative bands off diagonal, spdiags ignores data at end, for positive it ignores data at beginning 
+                N*I, N*I); %size of resulting matrix
 
 end	
 
