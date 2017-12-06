@@ -386,14 +386,14 @@ D_{+}^n &\equiv \frac{1}{h_{n,+}} \mathbf{I}
 \end{align}
 
 \paragraph{Implicit vs. Explicit Time Stepping}
-The key choice when discretizing the time dimension with a PDE is whether to use a derivative that is implicit vs. explicit in time.
+The key choice when discretizing the time dimension with a PDE is whether to use a derivative that is implicit vs. explicit in time.\footnote{The tradeoff, typically, is that explicit methods are faster (because you can step forward in time given a solution to $v_n^i$) but they can be unstable (i.e., choosing the wrong $\Delta/h$ ratio and it diverges, even if both are small!).  Implicit methods are much more stable and often have unconditional convergence, but require solving systems of equations.
+	
+	For economic applications, the speed advantage of explicit methods may be less useful because this setup is rarely an initial value problem (i.e. $v^1_i$ is not given).  On the other hand, the boundary/initial condition at $t=0$ is unclear with when using an implicit method.}
 \begin{itemize}
 	\item Explicit: $\D[t]v(t_n,x_i) \approx \frac{v^{n+1}_i - v^n_i}{h_{n,+}}$
 	\item Implicit: $\D[t]v(t_n,x_i) \approx \frac{v^n_i - v^{n-1}_i}{h_{n,-}}$
 \end{itemize}
-The tradeoff, typically, is that explicit methods are faster (because you can step forward in time given a solution to $v_n^i$) but they can be unstable (i.e., choosing the wrong $\Delta/h$ ratio and it diverges, even if both are small!).  Implicit methods are much more stable and often have unconditional convergence, but require solving systems of equations.
 
-For economic applications, the speed advantage of explicit methods may be less useful because this setup is rarely an initial value problem (i.e. $v^1_i$ is not given).  To be examined more carefully.
 
 \subsection{Algebra for Explicit Time Stepping}
 If we use explicit time stepping, then the discretization for uniform and non-uniform grids is a modification of  \cref{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior,eq:A-generator-univariate-diffusion-interior} in the interior $0 < n < N$ and $1 < i < I$:
@@ -508,128 +508,129 @@ This is consistent with the results implied by (82)-(92).
 \intertext{subject to the appropriate boundary conditions.  Discretizing the grid, let $u \equiv \set{u(x_i)}_{i=1}^I\in\R^I$, then the discretized version is,}
 (\rho  \mathbf{I} - A) v &= u\label{eq:discretized-linear-HJBE-dynamic}
 \end{align}
-
-\subsection{Implicit in Time}
-\textbf{TODO:}\footnote{If I had to guess, implicit would end up something like:
-\begin{align}
-A &\equiv \begin{bmatrix}
-A^1 ???	& 0		& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
-D_{-}^2 		&A^1 - D_{-}^2 & \mathbf{0}				 & \ldots			 & \mathbf{0}\\	
-\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
-\mathbf{0} 		&\ldots 	 	& D_{-}^{N-1}			& A^{N-1} - D_{-}^{N-1} &\mathbf{0}	\\
-\mathbf{0} 		&\ldots 		&						& \mathbf{0}	&A^N
-\end{bmatrix}\in\R^{(N I)\times (N I)}
-\end{align}
-The tough part to reason out is the $n=1$ setup at $t=0$, because you can't go backwards...  It is possible that this is simply not a good approach to solving the problem, and that the other approach is necessary?}
-The issue with implicit is what to do with the $t=0$ case?  Need to be very careful with the steady-state there.  It also may be trick to do the $t=T$ case as we may need ghost nodes to apply a boundary value?(e.g. maybe we have to add in the $N=1$ as the old stationary corner we have in the explicit method?\\
-\subsubsection{Algebra for Implicit Time Stepping}
-If we use implicit time stepping, then the discretization for uniform and non-uniform grids is a modification of  \cref{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior,eq:A-generator-univariate-diffusion-interior} in the interior $0 < n < N$ and $1 < i < I$:
-
-\begin{align}
-\mathcal{A} v(t_n, x_i) &\approx \underbrace{\left(v^n_i-v^n_{i-1}\right)\frac{\mu_i^{n,-}}{\Delta}+ \left(v^n_{i+1}-v^n_i\right)\frac{\mu_i^{n,+}}{\Delta}}_{\text{Upwind Scheme}}  + \frac{(\sigma^n_i)^2}{2} \frac{v^n_{i+1} - 2 v^n_i + v^n_{i-1}}{\Delta^2} + \underbrace{\frac{v^{n}_i - v^{n-1}_i}{h}}_{\text{Implicit}} \label{eq:A-generator-univariate-diffusion-interior-implicit-t}\\
-\intertext{And with a non-uniform grid}
-\mathcal{A} v(t_n, x_i) &\approx \underbrace{\left(v^n_i-v^n_{i-1}\right)\frac{\mu_i^{n, -}}{\Delta_{i,-}}+ \left(v^n_{i+1}-v^n_i\right)\frac{\mu_i^{n, +}}{\Delta_{i,+}}}_{\text{Upwind Scheme}}  + (\sigma^n_i)^2 \frac{\Delta_{i,-}v^n_{i+1} - (\Delta_{i,+}+\Delta_{i,-}) v^n_i + \Delta_{i,+}v^n_{i-1}}{\Delta_{i,-}\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}+ \underbrace{\frac{v^{n}_i - v^{n-1}_i}{h_{n,-}}}_{\text{Implicit}}\label{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior-implicit-t}
-\end{align}
-\paragraph{Interior of $A$ with implicit time stepping:}
-In the interior ($1 < i < I$), with a uniform grid, the discretization of \cref{eq:A-generator-univariate-diffusion-interior-implicit-t} and \cref{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior-implicit-t}
-\begin{align}
-\mathcal{A} v(t_n,x_i) & = \underbrace{\left(-\frac{\mu_i^{n,-}}{\Delta} +\frac{(\sigma_i^n)^2}{2 \Delta^2}\right)}_{\equiv X_i}v_{i-1}^n + \underbrace{\left(\frac{\mu_i^{n,-}-\mu_i^{n,+}}{\Delta}-\frac{(\sigma_i^n)^2}{\Delta^2}\right)}_{\equiv Y_i}v_i^n + \underbrace{\left(\frac{\mu_i^{n,+}}{\Delta} + \frac{(\sigma_i^n)^2}{2 \Delta^2}\right)}_{\equiv Z_i}v_{i+1}^{n}-\frac{1}{h}v_{i}^{n-1}+\frac{1}{h}v_{i}^{n}\label{eq:A-collected-interior-with-uniform-grid-implicit-t}
-\intertext{And with a non-uniform grid}
-\mathcal{A} v(t_n,x_i) & = \underbrace{\left(-\frac{\mu_i^{n,-}}{\Delta_{i,-}} +\frac{(\sigma_i^n)^2}{\Delta_{i,-}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv X_i}v_{i-1}^n + \underbrace{\left(\frac{\mu_i^{n,-}}{\Delta_{i,-}}-\frac{\mu_i^{n,+}}{\Delta_{i,+}}-\frac{(\sigma_i^n)^2}{\Delta_{i,-}\Delta_{i,+}}\right)}_{\equiv Y_i}v_i^n + \nonumber\\
-&\underbrace{\left(\frac{\mu_i^{n,+}}{\Delta_{i,+}}+ \frac{(\sigma_i^n)^2}{\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv Z_i}v_{i+1}^n-\frac{1}{h_{n,-}}v_{i}^{n-1}+\frac{1}{h_{n,-}}v_{i}^{n}\label{eq:A-collected-interior-with-nonuniform-grid-implicit-t}
-\end{align}
-
-\paragraph{Boundary Value at $\underline{x}$:}
-As $i =1$, given the ``ghost node'' $x_0$, the discretized operator from \cref{eq:A-collected-interior-with-uniform-grid-implicit-t} is
-\begin{align}
-\mathcal{A} v(t_n,x_1) &\approx \left(-\frac{\mu_1^{n,-}}{\Delta} +\frac{(\sigma_1^n)^2}{2 \Delta^2}\right)v_0^n + \left(\frac{\mu_1^{n,-}-\mu_1^{n,+}}{\Delta}-\frac{(\sigma_1^n)^2}{\Delta^2}\right)v_1^n + \left(\frac{\mu_1^{n,+}}{\Delta} + \frac{(\sigma_1^n)^2}{2 \Delta^2}\right)v_2^n-\frac{1}{h}v_{1}^{n-1}+\frac{1}{h}v_{1}^{n}\label{eq:A-collected-with-uniform-grid-left-implicit-t}\\
-\intertext{Use $\partial_x v(t_n, \underline{x}) \approx \frac{v_1^n-v_0^n}{\Delta} = 0, \implies v_1^n = v_0^n$, so}
- &\approx \left(\underbrace{\left(-\frac{\mu_1^{n,-}}{\Delta} +\frac{(\sigma_1^n)^2}{2 \Delta^2}\right)}_{\equiv X_1} + \underbrace{\left(\frac{\mu_1^{n,-}-\mu_1^{n,+}}{\Delta}-\frac{(\sigma_1^n)^2}{\Delta^2}\right)}_{\equiv Y_1}\right)v_1^n + \underbrace{\left(\frac{\mu_1^{n,+}}{\Delta} + \frac{(\sigma_1^n)^2}{2 \Delta^2}\right)}_{\equiv Z_1}v_2^n-\frac{1}{h}v_{1}^{n-1}+\frac{1}{h}v_1^{n}
-\intertext{And with a non-uniform grid, we recall the assumption that $\Delta_{1,-} = \Delta_{1,+}$.}
-\mathcal{A} v(t_n,x_1) &\approx \left(-\frac{\mu_1^{n,-}}{\Delta_{1,+}} +\frac{(\sigma_1^n)^2}{2 \Delta_{1,+}^2}\right)v_0^n + \left(\frac{\mu_1^{n,-} - \mu_1^{n,+}}{\Delta_{1,+}}-\frac{(\sigma_1^n)^2}{\Delta_{1,+}^2}\right) v_1^n + \left(\frac{\mu_1^{n,+}}{\Delta_{1,+}} + \frac{(\sigma_1^n)^2}{2 \Delta_{1,+}^2}\right)v_2^n-\frac{1}{h_{n,-}}v_{1}^{n-1}+\frac{1}{h_{n,-}}v_1^{n}\label{eq:A-collected-with-nonuniform-grid-left-implicit-t}\\
- &\approx \left(\underbrace{\left(\frac{-\mu_1^{n,-}}{\Delta_{1,-}} +\frac{(\sigma_1^n)^2}{\Delta_{1,-}(\Delta_{1,+}+\Delta_{1,-})}\right)}_{\equiv X_1} + \underbrace{\left(\frac{\mu_1^{n,-} - \mu_1^{n,+}}{\Delta_{1,+}}-\frac{(\sigma_1^n)^2}{\Delta_{1,+}\Delta_{1,-}}\right)}_{\equiv Y_1}\right)v_1^n + \\ \nonumber
-& \underbrace{\left(\frac{\mu_1^{n,+}}{\Delta_{1,+}} + \frac{(\sigma_1^n)^2}{2 \Delta_{1,+}\Delta_{1,-}}\right)}_{\equiv Z_1}v_2^n-\frac{1}{h_{n,-}}v_1^{n-1}+\frac{1}{h_{n,-}}v_1^{n}\label{eq:reflecting-left-nonuniform-implicit-t}
-\end{align}
-
-\paragraph{Boundary Value at $\bar{x}$:}
-As $i=I$, 
-\begin{align}
-\mathcal{A} v(t_n,x_I)&\approx \left(-\frac{\mu_I^{n,-}}{\Delta} +\frac{(\sigma_I^n)^2}{2 \Delta^2}\right)v_{I-1}^n + \left(\frac{\mu_I^{n,-}-\mu_I^{n,+}}{\Delta}-\frac{(\sigma_I^n)^2}{\Delta^2}\right)v_I^n + \left(\frac{\mu_I^{n,+}}{\Delta} + \frac{(\sigma_I^n)^2}{2 \Delta^2}\right)v_{I+1}^n-\frac{1}{h}v_{I}^{n-1}+\frac{1}{h}v_{I}^{n}\\
-\intertext{For a reflecting barrier, the boundary value $\partial_x v(t_n, \bar{x}) \approx \frac{v_{I+1}^n-v_I^n}{\Delta} = 0, \implies v_{I+1}^n = v_I^n$,}
-&=\underbrace{\left(-\frac{\mu_I^{n,-}}{\Delta} +\frac{(\sigma_I^n)^2}{2 \Delta^2}\right)}_{\equiv X_I} v_{I-1}^n + \left(\underbrace{\left(\frac{\mu_I^{n,-}-\mu_I^{n,+}}{\Delta}-\frac{(\sigma_I^n)^2}{\Delta^2}\right)}_{\equiv Y_I} + \underbrace{\left(\frac{\mu_I^{n,+}}{\Delta} + \frac{(\sigma_I^n)^2}{2 \Delta^2}\right)}_{\equiv Z_I} \right) v_I^n -\frac{1}{h}v_{I}^{n-1}+\frac{1}{h}v_{I}^{n}
-\intertext{And with a non-uniform grid, we recall the assumption that $\Delta_{I,+} = \Delta_{I,-}$.}
-\mathcal{A}  v(t_n,x_I)&\approx \left(-\frac{\mu_I^{n,-}}{\Delta_{I,-}} +\frac{(\sigma_I^n)^2}{2 \Delta_{I,-}^2}\right)v_{I-1}^n + \left(\frac{\mu_I^{n,-} - \mu_I^{n,+}}{\Delta_{I,-}}-\frac{(\sigma_I^n)^2}{\Delta_{I,-}^2}\right)v_I^n + \left(\frac{\mu_I^{n,+}}{\Delta_{I,-}} + \frac{(\sigma_I^n)^2}{2 \Delta_{I,-}^2}\right)v_{I+1}^n-\frac{1}{h_{n,-}}v_I^{n-1}+\frac{1}{h_{n,-}}v_I^{n}\\
-&\approx \underbrace{\left(-\frac{\mu_I^{n,-}}{\Delta_{I,-}} +\frac{(\sigma_I^n)^2}{\Delta_{I,-}(\Delta_{I,+}+\Delta_{I,-})}\right)}_{\equiv X_I} v_{I-1}^n\nonumber\\
-&+ \left(\underbrace{\left(\frac{\mu_I^{n,-}-\mu_I^{n,+}}{\Delta_{I,+}}-\frac{(\sigma_I^n)^2}{\Delta_{I,-}\Delta_{I,+}}\right)}_{\equiv Y_I} + \underbrace{\left(\frac{\mu_I^{n,+}}{\Delta_{I,+}} + \frac{(\sigma_I^n)^2}{\Delta_{I,+}(\Delta_{I,+}+\Delta_{I,-})}\right)}_{\equiv Z_I} \right) v_I^n-\frac{1}{h_{n,-}}v_I^{n-1}+\frac{1}{h_{n,-}}v_I^{n} \label{eq:reflecting-right-nonuniform-implicit-t}
-\end{align}
-\subsubsection{Implicit Time Steps as a Matrix}
-On the left hand side, since we do not have the ghost time point $t_0$, we can assume $h_{1, -} = h_{1, +}$, which is similar with the logic we used to set $\Delta_{1, -} = \Delta_{1, +}$. Similarly, we are not able to have value points $\{v_i^0\}_{i=1}^I$ as well. We may assmue $v_i^1 - v_i^0 = v_i^2 - v_i^1$. The right end can be formulated by the same way as what we do for interiors. \\
-Define the matrix of zeros as $\mathbf{0} \equiv 0_{I\times I}$. Make the guess that the discretized operator is,
-\begin{align}
-A &\equiv \begin{bmatrix}
-	A^1 - D_{-}^1	&D_{-}^1			& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
-	-D_{-}^2		 &A^2 + D_{-}^2 &\mathbf{0}  				 & \ldots			 & \mathbf{0}\\	
-	\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
-	\mathbf{0} 		&\ldots 	 	& -D_{-}^{N-1}				& A^{N-1} + D_{-}^{N-1} &\mathbf{0}\\
-	\mathbf{0} 		&\ldots 		&\ldots						& -D_{-}^{N}	&A^N+D_{-}^{N}
-	\end{bmatrix}\in\R^{(N I)\times (N I)}  \label{A-with-implicit-t}
-\end{align}
-When we are applying the boundary condition $\partial_t v(T, x) = 0$, A becomes
-\begin{align}
-A &\equiv \begin{bmatrix}
-	A^1 - D_{-}^1	&D_{-}^1			& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
-	-D_{-}^2		 &A^2 + D_{-}^2 &\mathbf{0}  				 & \ldots			 & \mathbf{0}\\	
-	\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
-	\mathbf{0} 		&\ldots 	 	& -D_{-}^{N-1}				& A^{N-1} + D_{-}^{N-1} &\mathbf{0}\\
-	\mathbf{0} 		&\ldots 		&\ldots						& \mathbf{0}	&A^N
-	\end{bmatrix}\in\R^{(N I)\times (N I)}
-\end{align}
-
-
-Why is there no subtraction of the $D_{+}$ at time $T$?  It comes from the boundary condition that $\D[t]v(T,x) = 0$.  If things are setup properly, the bottom right of the setup should be solvable on its own, and exactly replicate the stationary setup.  Also notice that $A$ nests the stationary setup if there is only a single time-period. 
-
-\paragraph{Algebra on matrix $A$:}
-Instead of losing generality, following equations are formulated in terms of \eqref{A-with-implicit-t}. Discretizing $v$ the same way as \cref{discretize}:
-
-\begin{align}
-v^n &\equiv \begin{bmatrix} v^n_1 &  v^n_2 & \ldots & v^n_I\end{bmatrix}^{\intercal}\in \R^I 
-\intertext{Then stack these up over time,}
-v &\equiv \begin{bmatrix} v^{1\intercal} &  v^{2\intercal} & \ldots&  v^{N\intercal}\end{bmatrix}^{\intercal}\in \R^{N I}
-\end{align}
-
-\paragraph{Interior with $1< n < N$ and Right end with $n = N$:}\footnote{Notice here the case $n=N$ is the same as $1\leq n<N$ because we are using implicit time, which means time only moves backwards, where $h_{N,-}=t_{N}-t_{N-1}$} Define new matrices $M^n$ for simplification:
-
-\begin{align}
-M^n &\equiv \begin{bmatrix} \mathbf{0} & \ldots &-D_{-}^n  & A^n+D_{-}^n &\ldots &\mathbf{0}\end{bmatrix}\in \R^{I\times N I} 
-\end{align}
-
- From \cref{eq:A-t} and \cref{eq:D-steady-state-T} we have:
-
-\begin{align}
-M^n v &\equiv \left(A^n+D_{-}^{n}\right)v^n-D_{-}^n v^{n-1}\\
-=& \begin{bmatrix}
-\left(Y^n_1 + X^n_1+\frac{1}{h_{n,-}}\right)v_1^{n} & Z^n_1v_2^{n} & 0  & \cdots & \cdots & 0 \\
-X^n_2v_1^n & \left(Y^n_2+\frac{1}{h_{n,-}}\right)v_2^n & Z^n_2v_3^{n} & \ddots& & \vdots \\
-0 & \ddots & \ddots & \ddots &  & \vdots \\
-\vdots &  & \ddots & \ddots & \ddots  & \vdots \\
-\vdots & & \ddots & X^n_{I-1}v_{I-2}^n & \left(Y^n_{I-1}+\frac{1}{h_{n,-}}\right)v_{I-1}^n  & Z^n_{I-1}v_I^n \\
-0 & \cdots & \cdots & 0 & X^n_Iv_{I-1}^{n} & \left(Y^n_I+Z^n_I+\frac{1}{h_{n,-}}\right)v_{I}^{n}\\
-\end{bmatrix} \nonumber \\
-&-\begin{bmatrix} \frac{1}{h_{n,-}}v_1^{n-1} &\mathbf{0} &\ldots &\ldots &\mathbf{0}\\
-\mathbf{0} & \frac{1}{h_{n,-}}v_2^{n-1} & \ldots &\ldots &\mathbf{0}\\
-\vdots & \vdots & \vdots &\vdots & \vdots\\
-\mathbf{0} & \ldots & \ldots & \frac{1}{h_{n,-}} v_{I-1}^{n-1} &\mathbf{0}\\
-\mathbf{0} & \ldots &\ldots & \mathbf{0} & \frac{1}{h_{n,-}} v_{I}^{n-1} \end{bmatrix}
-\end{align}
-
-\paragraph{Boundary with $n=1$:} Based on assumptions we proposed above, we have $\frac{v_i^1-v_i^0}{h_{1, -}} = \frac{v_i^2-v_i^1}{h_{1, +}}$. From \cref{eq:A-collected-interior-with-uniform-grid-implicit-t} and \cref{eq:A-collected-interior-with-nonuniform-grid-implicit-t} we have:
- 
- \begin{align}
-\mathcal{A} v(t_1,x_i) & = \underbrace{\left(-\frac{\mu_i^{1,-}}{\Delta} +\frac{(\sigma_i^1)^2}{2 \Delta^2}\right)}_{\equiv X_i}v_{i-1}^1 + \underbrace{\left(\frac{\mu_i^{1,-}-\mu_i^{1,+}}{\Delta}-\frac{(\sigma_i^1)^2}{\Delta^2}\right)}_{\equiv Y_i}v_i^1 + \underbrace{\left(\frac{\mu_i^{1,+}}{\Delta} + \frac{(\sigma_i^1)^2}{2 \Delta^2}\right)}_{\equiv Z_i}v_{i+1}^{1}+\frac{v_{i}^{2}-v_{i}^{1}}{h}
-\intertext{And with a non-uniform grid}
-\mathcal{A} v(t_1,x_i) & = \underbrace{\left(-\frac{\mu_i^{1,-}}{\Delta_{i,-}} +\frac{(\sigma_i^1)^2}{\Delta_{i,-}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv X_i}v_{i-1}^1 + \underbrace{\left(\frac{\mu_i^{1,-}}{\Delta_{i,-}}-\frac{\mu_i^{1,+}}{\Delta_{i,+}}-\frac{(\sigma_i^1)^2}{\Delta_{i,-}\Delta_{i,+}}\right)}_{\equiv Y_i}v_i^1 + \nonumber\\
-&\underbrace{\left(\frac{\mu_i^{1,+}}{\Delta_{i,+}}+ \frac{(\sigma_i^1)^2}{\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv Z_i}v_{i+1}^1+\frac{v_{i}^{2}-v_{i}^{1}}{h_{1,+}}
-\end{align}
+%
+%%Turned off until we can figure out if this is correct
+%\subsection{Implicit in Time}
+%\textbf{TODO:}\footnote{If I had to guess, implicit would end up something like:
+%\begin{align}
+%A &\equiv \begin{bmatrix}
+%A^1 ???	& 0		& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
+%D_{-}^2 		&A^1 - D_{-}^2 & \mathbf{0}				 & \ldots			 & \mathbf{0}\\	
+%\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
+%\mathbf{0} 		&\ldots 	 	& D_{-}^{N-1}			& A^{N-1} - D_{-}^{N-1} &\mathbf{0}	\\
+%\mathbf{0} 		&\ldots 		&						& \mathbf{0}	&A^N
+%\end{bmatrix}\in\R^{(N I)\times (N I)}
+%\end{align}
+%The tough part to reason out is the $n=1$ setup at $t=0$, because you can't go backwards...  It is possible that this is simply not a good approach to solving the problem, and that the other approach is necessary?}
+%The issue with implicit is what to do with the $t=0$ case?  Need to be very careful with the steady-state there.  It also may be trick to do the $t=T$ case as we may need ghost nodes to apply a boundary value?(e.g. maybe we have to add in the $N=1$ as the old stationary corner we have in the explicit method?\\
+%\subsubsection{Algebra for Implicit Time Stepping}
+%If we use implicit time stepping, then the discretization for uniform and non-uniform grids is a modification of  \cref{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior,eq:A-generator-univariate-diffusion-interior} in the interior $0 < n < N$ and $1 < i < I$:
+%
+%\begin{align}
+%\mathcal{A} v(t_n, x_i) &\approx \underbrace{\left(v^n_i-v^n_{i-1}\right)\frac{\mu_i^{n,-}}{\Delta}+ \left(v^n_{i+1}-v^n_i\right)\frac{\mu_i^{n,+}}{\Delta}}_{\text{Upwind Scheme}}  + \frac{(\sigma^n_i)^2}{2} \frac{v^n_{i+1} - 2 v^n_i + v^n_{i-1}}{\Delta^2} + \underbrace{\frac{v^{n}_i - v^{n-1}_i}{h}}_{\text{Implicit}} \label{eq:A-generator-univariate-diffusion-interior-implicit-t}\\
+%\intertext{And with a non-uniform grid}
+%\mathcal{A} v(t_n, x_i) &\approx \underbrace{\left(v^n_i-v^n_{i-1}\right)\frac{\mu_i^{n, -}}{\Delta_{i,-}}+ \left(v^n_{i+1}-v^n_i\right)\frac{\mu_i^{n, +}}{\Delta_{i,+}}}_{\text{Upwind Scheme}}  + (\sigma^n_i)^2 \frac{\Delta_{i,-}v^n_{i+1} - (\Delta_{i,+}+\Delta_{i,-}) v^n_i + \Delta_{i,+}v^n_{i-1}}{\Delta_{i,-}\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}+ \underbrace{\frac{v^{n}_i - v^{n-1}_i}{h_{n,-}}}_{\text{Implicit}}\label{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior-implicit-t}
+%\end{align}
+%\paragraph{Interior of $A$ with implicit time stepping:}
+%In the interior ($1 < i < I$), with a uniform grid, the discretization of \cref{eq:A-generator-univariate-diffusion-interior-implicit-t} and \cref{eq:A-generator-univariate-diffusion-with-nonuniform-grid-interior-implicit-t}
+%\begin{align}
+%\mathcal{A} v(t_n,x_i) & = \underbrace{\left(-\frac{\mu_i^{n,-}}{\Delta} +\frac{(\sigma_i^n)^2}{2 \Delta^2}\right)}_{\equiv X_i}v_{i-1}^n + \underbrace{\left(\frac{\mu_i^{n,-}-\mu_i^{n,+}}{\Delta}-\frac{(\sigma_i^n)^2}{\Delta^2}\right)}_{\equiv Y_i}v_i^n + \underbrace{\left(\frac{\mu_i^{n,+}}{\Delta} + \frac{(\sigma_i^n)^2}{2 \Delta^2}\right)}_{\equiv Z_i}v_{i+1}^{n}-\frac{1}{h}v_{i}^{n-1}+\frac{1}{h}v_{i}^{n}\label{eq:A-collected-interior-with-uniform-grid-implicit-t}
+%\intertext{And with a non-uniform grid}
+%\mathcal{A} v(t_n,x_i) & = \underbrace{\left(-\frac{\mu_i^{n,-}}{\Delta_{i,-}} +\frac{(\sigma_i^n)^2}{\Delta_{i,-}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv X_i}v_{i-1}^n + \underbrace{\left(\frac{\mu_i^{n,-}}{\Delta_{i,-}}-\frac{\mu_i^{n,+}}{\Delta_{i,+}}-\frac{(\sigma_i^n)^2}{\Delta_{i,-}\Delta_{i,+}}\right)}_{\equiv Y_i}v_i^n + \nonumber\\
+%&\underbrace{\left(\frac{\mu_i^{n,+}}{\Delta_{i,+}}+ \frac{(\sigma_i^n)^2}{\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv Z_i}v_{i+1}^n-\frac{1}{h_{n,-}}v_{i}^{n-1}+\frac{1}{h_{n,-}}v_{i}^{n}\label{eq:A-collected-interior-with-nonuniform-grid-implicit-t}
+%\end{align}
+%
+%\paragraph{Boundary Value at $\underline{x}$:}
+%As $i =1$, given the ``ghost node'' $x_0$, the discretized operator from \cref{eq:A-collected-interior-with-uniform-grid-implicit-t} is
+%\begin{align}
+%\mathcal{A} v(t_n,x_1) &\approx \left(-\frac{\mu_1^{n,-}}{\Delta} +\frac{(\sigma_1^n)^2}{2 \Delta^2}\right)v_0^n + \left(\frac{\mu_1^{n,-}-\mu_1^{n,+}}{\Delta}-\frac{(\sigma_1^n)^2}{\Delta^2}\right)v_1^n + \left(\frac{\mu_1^{n,+}}{\Delta} + \frac{(\sigma_1^n)^2}{2 \Delta^2}\right)v_2^n-\frac{1}{h}v_{1}^{n-1}+\frac{1}{h}v_{1}^{n}\label{eq:A-collected-with-uniform-grid-left-implicit-t}\\
+%\intertext{Use $\partial_x v(t_n, \underline{x}) \approx \frac{v_1^n-v_0^n}{\Delta} = 0, \implies v_1^n = v_0^n$, so}
+% &\approx \left(\underbrace{\left(-\frac{\mu_1^{n,-}}{\Delta} +\frac{(\sigma_1^n)^2}{2 \Delta^2}\right)}_{\equiv X_1} + \underbrace{\left(\frac{\mu_1^{n,-}-\mu_1^{n,+}}{\Delta}-\frac{(\sigma_1^n)^2}{\Delta^2}\right)}_{\equiv Y_1}\right)v_1^n + \underbrace{\left(\frac{\mu_1^{n,+}}{\Delta} + \frac{(\sigma_1^n)^2}{2 \Delta^2}\right)}_{\equiv Z_1}v_2^n-\frac{1}{h}v_{1}^{n-1}+\frac{1}{h}v_1^{n}
+%\intertext{And with a non-uniform grid, we recall the assumption that $\Delta_{1,-} = \Delta_{1,+}$.}
+%\mathcal{A} v(t_n,x_1) &\approx \left(-\frac{\mu_1^{n,-}}{\Delta_{1,+}} +\frac{(\sigma_1^n)^2}{2 \Delta_{1,+}^2}\right)v_0^n + \left(\frac{\mu_1^{n,-} - \mu_1^{n,+}}{\Delta_{1,+}}-\frac{(\sigma_1^n)^2}{\Delta_{1,+}^2}\right) v_1^n + \left(\frac{\mu_1^{n,+}}{\Delta_{1,+}} + \frac{(\sigma_1^n)^2}{2 \Delta_{1,+}^2}\right)v_2^n-\frac{1}{h_{n,-}}v_{1}^{n-1}+\frac{1}{h_{n,-}}v_1^{n}\label{eq:A-collected-with-nonuniform-grid-left-implicit-t}\\
+% &\approx \left(\underbrace{\left(\frac{-\mu_1^{n,-}}{\Delta_{1,-}} +\frac{(\sigma_1^n)^2}{\Delta_{1,-}(\Delta_{1,+}+\Delta_{1,-})}\right)}_{\equiv X_1} + \underbrace{\left(\frac{\mu_1^{n,-} - \mu_1^{n,+}}{\Delta_{1,+}}-\frac{(\sigma_1^n)^2}{\Delta_{1,+}\Delta_{1,-}}\right)}_{\equiv Y_1}\right)v_1^n + \\ \nonumber
+%& \underbrace{\left(\frac{\mu_1^{n,+}}{\Delta_{1,+}} + \frac{(\sigma_1^n)^2}{2 \Delta_{1,+}\Delta_{1,-}}\right)}_{\equiv Z_1}v_2^n-\frac{1}{h_{n,-}}v_1^{n-1}+\frac{1}{h_{n,-}}v_1^{n}\label{eq:reflecting-left-nonuniform-implicit-t}
+%\end{align}
+%
+%\paragraph{Boundary Value at $\bar{x}$:}
+%As $i=I$, 
+%\begin{align}
+%\mathcal{A} v(t_n,x_I)&\approx \left(-\frac{\mu_I^{n,-}}{\Delta} +\frac{(\sigma_I^n)^2}{2 \Delta^2}\right)v_{I-1}^n + \left(\frac{\mu_I^{n,-}-\mu_I^{n,+}}{\Delta}-\frac{(\sigma_I^n)^2}{\Delta^2}\right)v_I^n + \left(\frac{\mu_I^{n,+}}{\Delta} + \frac{(\sigma_I^n)^2}{2 \Delta^2}\right)v_{I+1}^n-\frac{1}{h}v_{I}^{n-1}+\frac{1}{h}v_{I}^{n}\\
+%\intertext{For a reflecting barrier, the boundary value $\partial_x v(t_n, \bar{x}) \approx \frac{v_{I+1}^n-v_I^n}{\Delta} = 0, \implies v_{I+1}^n = v_I^n$,}
+%&=\underbrace{\left(-\frac{\mu_I^{n,-}}{\Delta} +\frac{(\sigma_I^n)^2}{2 \Delta^2}\right)}_{\equiv X_I} v_{I-1}^n + \left(\underbrace{\left(\frac{\mu_I^{n,-}-\mu_I^{n,+}}{\Delta}-\frac{(\sigma_I^n)^2}{\Delta^2}\right)}_{\equiv Y_I} + \underbrace{\left(\frac{\mu_I^{n,+}}{\Delta} + \frac{(\sigma_I^n)^2}{2 \Delta^2}\right)}_{\equiv Z_I} \right) v_I^n -\frac{1}{h}v_{I}^{n-1}+\frac{1}{h}v_{I}^{n}
+%\intertext{And with a non-uniform grid, we recall the assumption that $\Delta_{I,+} = \Delta_{I,-}$.}
+%\mathcal{A}  v(t_n,x_I)&\approx \left(-\frac{\mu_I^{n,-}}{\Delta_{I,-}} +\frac{(\sigma_I^n)^2}{2 \Delta_{I,-}^2}\right)v_{I-1}^n + \left(\frac{\mu_I^{n,-} - \mu_I^{n,+}}{\Delta_{I,-}}-\frac{(\sigma_I^n)^2}{\Delta_{I,-}^2}\right)v_I^n + \left(\frac{\mu_I^{n,+}}{\Delta_{I,-}} + \frac{(\sigma_I^n)^2}{2 \Delta_{I,-}^2}\right)v_{I+1}^n-\frac{1}{h_{n,-}}v_I^{n-1}+\frac{1}{h_{n,-}}v_I^{n}\\
+%&\approx \underbrace{\left(-\frac{\mu_I^{n,-}}{\Delta_{I,-}} +\frac{(\sigma_I^n)^2}{\Delta_{I,-}(\Delta_{I,+}+\Delta_{I,-})}\right)}_{\equiv X_I} v_{I-1}^n\nonumber\\
+%&+ \left(\underbrace{\left(\frac{\mu_I^{n,-}-\mu_I^{n,+}}{\Delta_{I,+}}-\frac{(\sigma_I^n)^2}{\Delta_{I,-}\Delta_{I,+}}\right)}_{\equiv Y_I} + \underbrace{\left(\frac{\mu_I^{n,+}}{\Delta_{I,+}} + \frac{(\sigma_I^n)^2}{\Delta_{I,+}(\Delta_{I,+}+\Delta_{I,-})}\right)}_{\equiv Z_I} \right) v_I^n-\frac{1}{h_{n,-}}v_I^{n-1}+\frac{1}{h_{n,-}}v_I^{n} \label{eq:reflecting-right-nonuniform-implicit-t}
+%\end{align}
+%\subsubsection{Implicit Time Steps as a Matrix}
+%On the left hand side, since we do not have the ghost time point $t_0$, we can assume $h_{1, -} = h_{1, +}$, which is similar with the logic we used to set $\Delta_{1, -} = \Delta_{1, +}$. Similarly, we are not able to have value points $\{v_i^0\}_{i=1}^I$ as well. We may assmue $v_i^1 - v_i^0 = v_i^2 - v_i^1$. The right end can be formulated by the same way as what we do for interiors. \\
+%Define the matrix of zeros as $\mathbf{0} \equiv 0_{I\times I}$. Make the guess that the discretized operator is,
+%\begin{align}
+%A &\equiv \begin{bmatrix}
+%	A^1 - D_{-}^1	&D_{-}^1			& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
+%	-D_{-}^2		 &A^2 + D_{-}^2 &\mathbf{0}  				 & \ldots			 & \mathbf{0}\\	
+%	\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
+%	\mathbf{0} 		&\ldots 	 	& -D_{-}^{N-1}				& A^{N-1} + D_{-}^{N-1} &\mathbf{0}\\
+%	\mathbf{0} 		&\ldots 		&\ldots						& -D_{-}^{N}	&A^N+D_{-}^{N}
+%	\end{bmatrix}\in\R^{(N I)\times (N I)}  \label{A-with-implicit-t}
+%\end{align}
+%When we are applying the boundary condition $\partial_t v(T, x) = 0$, A becomes
+%\begin{align}
+%A &\equiv \begin{bmatrix}
+%	A^1 - D_{-}^1	&D_{-}^1			& \mathbf{0}			 & \ldots 			& \mathbf{0}\\
+%	-D_{-}^2		 &A^2 + D_{-}^2 &\mathbf{0}  				 & \ldots			 & \mathbf{0}\\	
+%	\vdots 			& \vdots 		& \vdots				& \vdots			&\vdots\\
+%	\mathbf{0} 		&\ldots 	 	& -D_{-}^{N-1}				& A^{N-1} + D_{-}^{N-1} &\mathbf{0}\\
+%	\mathbf{0} 		&\ldots 		&\ldots						& \mathbf{0}	&A^N
+%	\end{bmatrix}\in\R^{(N I)\times (N I)}
+%\end{align}
+%
+%
+%Why is there no subtraction of the $D_{+}$ at time $T$?  It comes from the boundary condition that $\D[t]v(T,x) = 0$.  If things are setup properly, the bottom right of the setup should be solvable on its own, and exactly replicate the stationary setup.  Also notice that $A$ nests the stationary setup if there is only a single time-period. 
+%
+%\paragraph{Algebra on matrix $A$:}
+%Instead of losing generality, following equations are formulated in terms of \eqref{A-with-implicit-t}. Discretizing $v$ the same way as \cref{discretize}:
+%
+%\begin{align}
+%v^n &\equiv \begin{bmatrix} v^n_1 &  v^n_2 & \ldots & v^n_I\end{bmatrix}^{\intercal}\in \R^I 
+%\intertext{Then stack these up over time,}
+%v &\equiv \begin{bmatrix} v^{1\intercal} &  v^{2\intercal} & \ldots&  v^{N\intercal}\end{bmatrix}^{\intercal}\in \R^{N I}
+%\end{align}
+%
+%\paragraph{Interior with $1< n < N$ and Right end with $n = N$:}\footnote{Notice here the case $n=N$ is the same as $1\leq n<N$ because we are using implicit time, which means time only moves backwards, where $h_{N,-}=t_{N}-t_{N-1}$} Define new matrices $M^n$ for simplification:
+%
+%\begin{align}
+%M^n &\equiv \begin{bmatrix} \mathbf{0} & \ldots &-D_{-}^n  & A^n+D_{-}^n &\ldots &\mathbf{0}\end{bmatrix}\in \R^{I\times N I} 
+%\end{align}
+%
+% From \cref{eq:A-t} and \cref{eq:D-steady-state-T} we have:
+%
+%\begin{align}
+%M^n v &\equiv \left(A^n+D_{-}^{n}\right)v^n-D_{-}^n v^{n-1}\\
+%=& \begin{bmatrix}
+%\left(Y^n_1 + X^n_1+\frac{1}{h_{n,-}}\right)v_1^{n} & Z^n_1v_2^{n} & 0  & \cdots & \cdots & 0 \\
+%X^n_2v_1^n & \left(Y^n_2+\frac{1}{h_{n,-}}\right)v_2^n & Z^n_2v_3^{n} & \ddots& & \vdots \\
+%0 & \ddots & \ddots & \ddots &  & \vdots \\
+%\vdots &  & \ddots & \ddots & \ddots  & \vdots \\
+%\vdots & & \ddots & X^n_{I-1}v_{I-2}^n & \left(Y^n_{I-1}+\frac{1}{h_{n,-}}\right)v_{I-1}^n  & Z^n_{I-1}v_I^n \\
+%0 & \cdots & \cdots & 0 & X^n_Iv_{I-1}^{n} & \left(Y^n_I+Z^n_I+\frac{1}{h_{n,-}}\right)v_{I}^{n}\\
+%\end{bmatrix} \nonumber \\
+%&-\begin{bmatrix} \frac{1}{h_{n,-}}v_1^{n-1} &\mathbf{0} &\ldots &\ldots &\mathbf{0}\\
+%\mathbf{0} & \frac{1}{h_{n,-}}v_2^{n-1} & \ldots &\ldots &\mathbf{0}\\
+%\vdots & \vdots & \vdots &\vdots & \vdots\\
+%\mathbf{0} & \ldots & \ldots & \frac{1}{h_{n,-}} v_{I-1}^{n-1} &\mathbf{0}\\
+%\mathbf{0} & \ldots &\ldots & \mathbf{0} & \frac{1}{h_{n,-}} v_{I}^{n-1} \end{bmatrix}
+%\end{align}
+%
+%\paragraph{Boundary with $n=1$:} Based on assumptions we proposed above, we have $\frac{v_i^1-v_i^0}{h_{1, -}} = \frac{v_i^2-v_i^1}{h_{1, +}}$. From \cref{eq:A-collected-interior-with-uniform-grid-implicit-t} and \cref{eq:A-collected-interior-with-nonuniform-grid-implicit-t} we have:
+% 
+% \begin{align}
+%\mathcal{A} v(t_1,x_i) & = \underbrace{\left(-\frac{\mu_i^{1,-}}{\Delta} +\frac{(\sigma_i^1)^2}{2 \Delta^2}\right)}_{\equiv X_i}v_{i-1}^1 + \underbrace{\left(\frac{\mu_i^{1,-}-\mu_i^{1,+}}{\Delta}-\frac{(\sigma_i^1)^2}{\Delta^2}\right)}_{\equiv Y_i}v_i^1 + \underbrace{\left(\frac{\mu_i^{1,+}}{\Delta} + \frac{(\sigma_i^1)^2}{2 \Delta^2}\right)}_{\equiv Z_i}v_{i+1}^{1}+\frac{v_{i}^{2}-v_{i}^{1}}{h}
+%\intertext{And with a non-uniform grid}
+%\mathcal{A} v(t_1,x_i) & = \underbrace{\left(-\frac{\mu_i^{1,-}}{\Delta_{i,-}} +\frac{(\sigma_i^1)^2}{\Delta_{i,-}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv X_i}v_{i-1}^1 + \underbrace{\left(\frac{\mu_i^{1,-}}{\Delta_{i,-}}-\frac{\mu_i^{1,+}}{\Delta_{i,+}}-\frac{(\sigma_i^1)^2}{\Delta_{i,-}\Delta_{i,+}}\right)}_{\equiv Y_i}v_i^1 + \nonumber\\
+%&\underbrace{\left(\frac{\mu_i^{1,+}}{\Delta_{i,+}}+ \frac{(\sigma_i^1)^2}{\Delta_{i,+}(\Delta_{i,+}+\Delta_{i,-})}\right)}_{\equiv Z_i}v_{i+1}^1+\frac{v_{i}^{2}-v_{i}^{1}}{h_{1,+}}
+%\end{align}
 
 
 
