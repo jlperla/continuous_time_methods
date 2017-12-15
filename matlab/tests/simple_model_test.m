@@ -57,6 +57,8 @@ function simple_v_test(testCase)
 
     rho = 0.09;
     v_b = simple_HJBE_discretized_univariate(A_b, state_permutations_b(:,1), u_b, rho); % state_perm need to be in size N*I
+    
+    vr = ValueMatch(v_b,x_base,Delta_p,Delta_m,h_p,h_m);
 
     v = reshape(v_b,I,N);
     diff_s = v(:,N-2) - v(:,N-1);
@@ -118,7 +120,9 @@ function change_r_test(testCase)
     r_low=0.05;
     for i=1:21
         rho(i) = r_center - abs(i-11)*(r_center-r_low)/10;
+        %rho(i) = 0.03+0.001*i;
         v_b = simple_HJBE_discretized_univariate(A_b, state_permutations_b(:,1), u_b, rho(i)); % state_perm need to be in size N*I
+        vrr = ValueMatch(v_b,x_base,Delta_p,Delta_m,h_p,h_m); % this is residual v1-omega*v, its a function of t and r
         vv_{i} = reshape(v_b,I,N);
         v_T(:,i)=vv_{i}(:,N); % v at last time node
         v_T1(:,i)=vv_{i}(:,N-1); % v at second to last time node
@@ -127,6 +131,8 @@ function change_r_test(testCase)
         v_z1(i,:)=vv_{i}(1,:);% v at z=1th
         v_z500(i,:)=vv_{i}(500,:); % v at z=500th
         v_zI(i,:)=vv_{i}(I,:); % at z last point
+        
+        vr(:,i)=vrr; % vr function as t and r
     end
     
     % How interest rate change affect v(z=1,t)
@@ -152,6 +158,13 @@ function change_r_test(testCase)
     title('3D plot for v at z=1st point across r points(not value) and t')
     ylabel('rgrid point')
     xlabel('time')
+    
+    [vr_rho_grid,vr_t_grid] = meshgrid(rho,t_base);
+    figure()
+    surf(vr_rho_grid,vr_t_grid,vr)
+    title('3D plot for vr')
+    ylabel('time')
+    xlabel('r')
 end
 
 
