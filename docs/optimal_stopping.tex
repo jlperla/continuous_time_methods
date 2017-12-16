@@ -2,6 +2,7 @@
 \usepackage{pstool} 
 \usepackage{etk-bib}
 \pdfmetadata{}{}{}{}
+\externaldocument[FD:]{operator_discretization_finite_differences}
 
 \begin{document}
 \title{Optimal Stopping Problems}
@@ -37,7 +38,7 @@ Another formulation is to find a $v(x)$ such that the following holds,
 for all $x$ (adding an appropriate boundary conditions $x$).  This is a variational inequality since $\mathcal{A}$ is a differential operator.  While the value matching condition is clear here, it can be shown that this implies the smooth pasting condition.
 
 
-\subsection{Discretized Problem}
+\subsection{Discretized Problem}\label{sec:discretized-stationary}
 For an arbitrary operator $\mathcal{A}$ with associated boundary values, we will find a solution to \cref{eq:HJB-variational-simple-operator} by discretizing the $\mathcal{A}$ operator on a grid $\set{x_i}_{i=1}^I$ with $x_1 = \underline{x}$ and $x_I = \bar{x}$ subject to appropriate boundary values on $\underline{x}$ and $\bar{x}$.  See \url{operator_discretization_finite_differences.pdf} notes for details on the discretization of operators.
 \paragraph{Linear Operator}
 In the case of a linear operator $\mathcal{A}$, the resulting discretized finite-difference operator is a matrix $A$.  Denote $v \equiv \set{v(x_i)}_{i=1}^I, u \equiv \set{u(x_i)}_{i=1}^I$, and $S \equiv \set{s(x_i)}_{i=1}^I$, then \cref{eq:HJB-variational-simple-operator} becomes
@@ -46,7 +47,7 @@ In the case of a linear operator $\mathcal{A}$, the resulting discretized finite
 \end{align}
 where $A\in\R^{I\times I}$.  A solution to this problem is a $v$ fulfilling \cref{eq:HJB-variational-simple-discrete}.  Note that the boundary values are already in the $A$ operator and do not need to be discussed separately.
 
-\subsection{LCP Formulation}
+\subsection{LCP Formulation}\label{sec:LCP-formulation}
 Following \url{http://www.princeton.edu/~moll/HACTproject/option_simple.pdf} with only minor variations, we note that \cref{eq:HJB-variational-simple-operator} is a linear-complementarity problem. 
 Define the following (given the identity matrix $\mathbf{I}\in\R^{I\times I}$),
 \begin{align}
@@ -71,6 +72,60 @@ Alternatively, some LCP and MCP solvers prefer to have a slack variable introduc
 where \cref{eq:w-equality-constraint} is added to the solver with a linear equality constraint.
 
 In either case, to unpack the results, drop any slack variables to get the $z$ vector, and undo the transformation in \cref{eq:z}.
+
+\section{Optimal Stopping of a Univariate, Time-Varying Process}
+
+
+
+\subsection{Discretizing the Stochastic Process}
+Assume $t \in [0, T]$, where $T$ may be a very large number if the system converges. 
+\paragraph{Stopping}
+The value of stopping at any time $t$ with state $x$ is now $S(t,x)$.  Assume that $S(t,x)$ converges so that $S(t,x) = S(T,x)$ for all $t \geq T$.
+
+\paragraph{Discretizing the Operator}
+Here, we follow \cref{FD:sec:time-dependent-univariate-diffusion}.  To summarize, 
+ The SDE for the state is now \begin{align}
+\diff x_t = \mu(t, x_t)\diff t + \sigma(t, x_t)\diff\mathbb{W}_t\label{eq:x-t-SDE}
+\end{align}
+and the infinitesimal generator is 
+\begin{align}
+\mathcal{A} &\equiv \mu(t,x)\D[x] + \frac{\sigma(t,x)^2}{2}\D[xx] + \D[t]\label{eq:A-generator-univariate-diffusion-t}
+\end{align}
+Even if the $\mu(\cdot)$ and $\sigma(\cdot)$ are independent of time, the discretized generator used for solving the problem may be dependent on time due to boundary values, etc.
+
+\paragraph{Boundary Values}
+As before, we will start by assuming reflecting boundaries at some $\underline{x}$ and $\bar{x}$, so that the boundary values are,
+\begin{align}
+\D[x]v(t,\underline{x}) &= 0\\
+\D[x]v(t,\bar{x}) &= 0\\
+\intertext{Furthermore, at time $T$ the system is in a steady state, and we can use}
+\D[t]v(t,x) &= 0,\, \text{ for all } t \geq T\label{eq:D-steady-state-T}
+\end{align} 
+
+\subsection{Variational Formulation}
+The optimal stopping problem can then be cast as finding a $v(t,x)$ such that for all $t\in[0,T]$ and $z\in[\underline{x},\bar{x}]$,
+\begin{align}
+0 &= \min\set{\rho v(t,x) - u(t,x) - \mathcal{A} v(t,x),\, v(t,x) - S(t,x) }\label{eq:HJB-variational-simple-operator-time-varying}
+\end{align}	
+Note that this is in nearly the same form as \cref{eq:HJB-variational-simple-operator}.
+\subsection{Discretized Problem}
+Following \cref{sec:discretized-stationary}, we will discretize the $\mathcal{A}$ operator, $v$, etc. to convert \cref{eq:HJB-variational-simple-operator-time-varying} into a linear complementarity problem.
+
+First, discretize $u\in\R^{N I}$ and $S\in\R^{N I}$ on the grid of $t_n$ and $x_i$,
+\begin{align}
+u^n_i &\equiv u(t_n, x_i)\\
+S^n_i &\equiv S(t_n, x_i)\\
+\intertext{Stack these up to form a vector for a given time period.  For example,}
+S^n &\equiv \begin{bmatrix} S^n_1 &  S^n_2 & \ldots & S^n_I\end{bmatrix}^{\intercal}\in \R^I
+\intertext{Then stack these up over time,}
+S &\equiv \begin{bmatrix} S^{1\intercal} &  S^{2\intercal} & \ldots&  S^{N\intercal}\end{bmatrix}^{\intercal}\in \R^{N I}
+\end{align}
+and equivalently stacked up for $u$.  Then, use the same discretization of $\mathcal{A}$ as given in from \cref{FD:sec:time-dependent-univariate-diffusion} to $A$, 
+With this, the discretized version has the identical form to that of \cref{eq:HJB-variational-simple-discrete}
+\begin{align}
+0 &= \min\set{\rho v - u - A v,\, v - S }
+\end{align}
+Which can be solved via the same mapping to an LCP problem described in \cref{sec:LCP-formulation}
 
 
 \bibliography{etk-references}
