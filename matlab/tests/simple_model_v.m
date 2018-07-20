@@ -53,6 +53,7 @@ diff_s = v(:,N-2) - v(:,N-1);
 diff_N = v(:,N-1) - v(:,N);  
 diff_1 = v(:,1) - v(:,2);
 
+x_grid=x_base;
 figure()
 plot(x_grid,v(:,1),'-o');hold on
 plot(x_grid,v(:,50),'-x'); hold on
